@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Profile + workflow state (examState, timestamps). The authoritative
+    // transitions (corpus generated, notes validated, exam started/submitted,
+    // graded) are written by Cloud Functions with the Admin SDK, which
+    // bypasses these rules. The client may only touch its own display info.
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && request.resource.data.examState == 'not_started';
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['displayName']);
+    }
+
+    // Dossier préparatoire (corpus de textes). Généré une seule fois par une
+    // Cloud Function et figé : le client ne peut que le lire.
+    match /corpora/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    // Feuille de notes : l'élève y travaille à son rythme, sauvegarde en
+    // temps réel autorisée pour le propriétaire.
+    match /notes/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+
+    // Verdict de conformité de la feuille de notes, émis par l'IA.
+    match /validations/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    // Lettre ouverte soumise. Écrite par la fonction submitLetter (Admin SDK)
+    // pour garantir l'horodatage serveur et le respect du délai de 3h15.
+    match /submissions/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    // Correction automatisée selon la grille ministérielle à 5 critères.
+    match /corrections/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+  }
+}
