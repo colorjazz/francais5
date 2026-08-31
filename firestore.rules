@@ -55,5 +55,31 @@ service cloud.firestore {
       allow read: if isOwner(uid);
       allow write: if false;
     }
+
+    // Clé de correction cachée du dossier (thèse réelle, point de vue,
+    // classification des arguments) : jamais lisible par le client, sert
+    // uniquement aux Cloud Functions à évaluer les réponses de l'élève.
+    match /corpusKeys/{uid} {
+      allow read, write: if false;
+    }
+
+    // Section A — rétroaction formative sur l'analyse critique du dossier.
+    match /readingAnalyses/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    // Banque d'arguments personnelle de l'élève, pour préparer sa thèse.
+    match /argumentBank/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+
+    // Section B — transcript de la discussion préparatoire avec l'IA.
+    // Écrit uniquement par les Cloud Functions pour garantir la cohérence
+    // du fil et empêcher l'élève de falsifier les réponses de son « pair ».
+    match /discussions/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
   }
 }

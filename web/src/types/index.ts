@@ -16,6 +16,11 @@ export type ExamMode = "entrainement" | "simulation";
 
 export type TextType = "courant" | "litteraire";
 
+export interface PublicArgument {
+  id: string;
+  extrait: string;
+}
+
 export interface CorpusText {
   id: string;
   title: string;
@@ -24,12 +29,62 @@ export interface CorpusText {
   genre: string;
   content: string;
   publication: string;
+  arguments: PublicArgument[];
 }
 
 export interface Corpus {
   topic: string;
   question: string;
   texts: CorpusText[];
+}
+
+export type ArgumentType = "fait" | "opinion" | "discours_rapporte";
+export type PointDeVue = "favorable" | "defavorable" | "nuance";
+
+export interface ReadingAnalysisEntry {
+  theseProposee: string;
+  theseFeedback: string;
+  theseCorrecte: boolean;
+  pointDeVueChoisi: PointDeVue;
+  pointDeVueFeedback: string;
+  pointDeVueCorrect: boolean;
+  argumentResults: {
+    id: string;
+    propose: ArgumentType;
+    correct: ArgumentType;
+    estCorrect: boolean;
+  }[];
+  argumentScore: number;
+  credibiliteReponse: string;
+  credibiliteFeedback: string;
+  score: number;
+}
+
+/** readingAnalyses/{uid} : une entrée par texte, indexée par son id. */
+export type ReadingAnalyses = Record<string, ReadingAnalysisEntry>;
+
+export type ArgumentStance = "pour" | "contre" | "nuance";
+
+export interface ArgumentBankEntry {
+  id: string;
+  textId: string;
+  textTitle: string;
+  extrait: string;
+  stance: ArgumentStance;
+  note?: string;
+}
+
+export type DiscussionRole = "eleve" | "ia";
+
+export interface DiscussionMessage {
+  role: DiscussionRole;
+  texte: string;
+}
+
+export interface Discussion {
+  these: string;
+  messages: DiscussionMessage[];
+  synthese?: string;
 }
 
 export interface NotesValidation {

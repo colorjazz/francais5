@@ -4,19 +4,33 @@ import { setGlobalOptions } from "firebase-functions/v2";
 import { askClaudeForJSON, anthropicApiKey } from "./claude";
 import {
   buildCorpusUserPrompt,
+  buildDiscussionSynthesisUserPrompt,
+  buildDiscussionUserPrompt,
   buildGradingUserPrompt,
   buildNotesValidationUserPrompt,
+  buildReadingFeedbackUserPrompt,
   CORPUS_SYSTEM_PROMPT,
+  DISCUSSION_SYNTHESIS_SYSTEM_PROMPT,
+  DISCUSSION_SYSTEM_PROMPT,
   GRADING_SYSTEM_PROMPT,
   NOTES_VALIDATION_SYSTEM_PROMPT,
+  READING_FEEDBACK_SYSTEM_PROMPT,
 } from "./prompts";
 import { applyGradingRules } from "./grading";
 import {
+  ArgumentType,
   Corpus,
+  CorpusKey,
+  Discussion,
+  DiscussionMessage,
   ExamMode,
   ExamState,
   NotesValidation,
+  PointDeVue,
+  RawCorpusResponse,
   RawGradingModelOutput,
+  RawReadingFeedback,
+  ReadingAnalysisEntry,
 } from "./types";
 
 admin.initializeApp();
@@ -26,6 +40,9 @@ setGlobalOptions({ region: "northamerica-northeast1", maxInstances: 10 });
 
 /** Durée officielle de l'épreuve d'écriture : 3 heures 15 minutes. */
 const EXAM_DURATION_MS = (3 * 60 + 15) * 60 * 1000;
+
+/** Nombre maximal de tours de parole de l'élève dans la discussion préparatoire (section B). */
+const DISCUSSION_MAX_TURNS = 6;
 
 function requireAuth(uid: string | undefined): string {
   if (!uid) {
@@ -46,6 +63,17 @@ async function getExamState(uid: string): Promise<ExamState> {
   return (snap.data()?.examState as ExamState) ?? "not_started";
 }
 
+function summarizePointsDeVue(corpus: Corpus, corpusKey: CorpusKey | undefined): string {
+  if (!corpusKey) return "(voir les textes du dossier)";
+  return corpus.texts
+    .map((t) => {
+      const key = corpusKey.texts.find((k) => k.textId === t.id);
+      return key ? `« ${t.title} » — ${key.pointDeVue}` : null;
+    })
+    .filter((s): s is string => !!s)
+    .join(" ; ");
+}
+
 /**
  * Jour 1 : génère le dossier préparatoire (corpus) une seule fois par
  * élève, puis le fige en base. Les appels suivants renvoient le même
@@ -62,7 +90,7 @@ export const generateCorpus = onCall(
     }
 
     const topic: string | undefined = request.data?.topic;
-    const raw = await askClaudeForJSON<Omit<Corpus, "generatedAt">>({
+    const raw = await askClaudeForJSON<RawCorpusResponse>({
       system: CORPUS_SYSTEM_PROMPT,
       user: buildCorpusUserPrompt(topic),
       maxTokens: 8000,
@@ -75,16 +103,43 @@ export const generateCorpus = onCall(
       );
     }
 
+    // Le corpus public (lu par le client) ne contient jamais la clé de
+    // correction (thèse réelle, point de vue, type des arguments) : elle
+    // est stockée séparément, dans une collection que les règles Firestore
+    // refusent en lecture au client, pour que les exercices de la section
+    // « Lire et apprécier » restent formatifs plutôt que trivialement
+    // consultables.
     const corpus: Corpus = {
       topic: raw.topic,
       question: raw.question,
-      texts: raw.texts,
+      texts: raw.texts.map((t) => ({
+        id: t.id,
+        title: t.title,
+        author: t.author,
+        type: t.type,
+        genre: t.genre,
+        content: t.content,
+        publication: t.publication,
+        arguments: t.arguments.map((a) => ({ id: a.id, extrait: a.extrait })),
+      })),
       generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    const corpusKey: CorpusKey = {
+      texts: raw.texts.map((t) => ({
+        textId: t.id,
+        these: t.these,
+        pointDeVue: t.pointDeVue,
+        pointDeVueJustification: t.pointDeVueJustification,
+        credibiliteNotes: t.credibiliteNotes,
+        argumentTypes: t.arguments.map((a) => ({ id: a.id, type: a.type })),
+      })),
     };
 
     const userRef = db.collection("users").doc(uid);
     await db.runTransaction(async (tx) => {
       tx.set(db.collection("corpora").doc(uid), corpus);
+      tx.set(db.collection("corpusKeys").doc(uid), corpusKey);
       tx.set(
         userRef,
         { examState: "corpus_ready" satisfies ExamState },
@@ -443,3 +498,318 @@ export const gradeLetter = onCall(
 export const getExamConfig = onCall({}, async () => {
   return { examDurationMs: EXAM_DURATION_MS };
 });
+
+/* ------------------------------------------------------------------ *
+ * Section A — « Lire et apprécier des textes variés »
+ * ------------------------------------------------------------------ */
+
+/**
+ * Corrige les réponses de l'élève à l'exercice d'analyse critique d'un
+ * texte du dossier (thèse, point de vue de l'énonciateur, classification
+ * des arguments, évaluation de la crédibilité de la source). La
+ * classification des arguments est corrigée par comparaison déterministe
+ * à la clé cachée ; la thèse, le point de vue et la crédibilité reçoivent
+ * une rétroaction générée par le modèle. Purement formatif — ne fait pas
+ * partie de la note de l'épreuve.
+ */
+export const submitReadingAnalysis = onCall(
+  { secrets: [anthropicApiKey] },
+  async (request) => {
+    const uid = requireAuth(request.auth?.uid);
+    const textId: string = (request.data?.textId ?? "").toString();
+    const theseProposee: string = (request.data?.theseProposee ?? "")
+      .toString()
+      .trim();
+    const pointDeVueChoisi = request.data?.pointDeVueChoisi as
+      | PointDeVue
+      | undefined;
+    const pointDeVueJustificationEleve: string = (
+      request.data?.pointDeVueJustification ?? ""
+    ).toString();
+    const credibiliteReponse: string = (
+      request.data?.credibiliteReponse ?? ""
+    ).toString();
+    const argumentClassifications = (request.data?.argumentClassifications ??
+      []) as { id: string; type: ArgumentType }[];
+
+    if (!textId || theseProposee.length === 0) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Réponds à l'exercice avant de le vérifier."
+      );
+    }
+    if (
+      pointDeVueChoisi !== "favorable" &&
+      pointDeVueChoisi !== "defavorable" &&
+      pointDeVueChoisi !== "nuance"
+    ) {
+      throw new HttpsError("invalid-argument", "Choisis un point de vue valide.");
+    }
+
+    const [corpusSnap, keySnap] = await Promise.all([
+      db.collection("corpora").doc(uid).get(),
+      db.collection("corpusKeys").doc(uid).get(),
+    ]);
+    const corpus = corpusSnap.data() as Corpus | undefined;
+    const corpusKey = keySnap.data() as CorpusKey | undefined;
+    if (!corpus || !corpusKey) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Le dossier préparatoire n'a pas encore été généré."
+      );
+    }
+    const text = corpus.texts.find((t) => t.id === textId);
+    const key = corpusKey.texts.find((t) => t.textId === textId);
+    if (!text || !key) {
+      throw new HttpsError("not-found", "Texte introuvable dans le dossier.");
+    }
+
+    const argumentResults = key.argumentTypes.map((correct) => {
+      const submitted = argumentClassifications.find((a) => a.id === correct.id);
+      const propose = submitted?.type ?? ("opinion" as ArgumentType);
+      return {
+        id: correct.id,
+        propose,
+        correct: correct.type,
+        estCorrect: propose === correct.type,
+      };
+    });
+    const argumentScore = argumentResults.length
+      ? Math.round(
+          (argumentResults.filter((r) => r.estCorrect).length /
+            argumentResults.length) *
+            100
+        )
+      : 100;
+
+    const raw = await askClaudeForJSON<RawReadingFeedback>({
+      system: READING_FEEDBACK_SYSTEM_PROMPT,
+      user: buildReadingFeedbackUserPrompt({
+        texteTitle: text.title,
+        texteAuteur: text.author,
+        texteType: text.type,
+        these: key.these,
+        pointDeVue: key.pointDeVue,
+        pointDeVueJustification: key.pointDeVueJustification,
+        credibiliteNotes: key.credibiliteNotes,
+        theseProposee,
+        pointDeVueChoisi,
+        pointDeVueJustificationEleve,
+        credibiliteReponse,
+      }),
+      maxTokens: 1200,
+    });
+
+    const theseComponent = raw.theseCorrecte ? 100 : 50;
+    const pointDeVueComponent = raw.pointDeVueCorrect ? 100 : 50;
+    const score = Math.round(
+      (theseComponent + pointDeVueComponent + argumentScore) / 3
+    );
+
+    const entry: ReadingAnalysisEntry = {
+      theseProposee,
+      theseFeedback: raw.theseFeedback,
+      theseCorrecte: raw.theseCorrecte,
+      pointDeVueChoisi,
+      pointDeVueFeedback: raw.pointDeVueFeedback,
+      pointDeVueCorrect: raw.pointDeVueCorrect,
+      argumentResults,
+      argumentScore,
+      credibiliteReponse,
+      credibiliteFeedback: raw.credibiliteFeedback,
+      score,
+      submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await db
+      .collection("readingAnalyses")
+      .doc(uid)
+      .set({ [textId]: entry }, { merge: true });
+
+    return { entry };
+  }
+);
+
+/* ------------------------------------------------------------------ *
+ * Section B — « Communiquer oralement selon des modalités variées »
+ * ------------------------------------------------------------------ */
+
+/**
+ * Démarre la discussion préparatoire : l'élève énonce la thèse qu'il ou
+ * elle défend pour l'instant, et l'IA (un « pair ») ouvre le débat avec
+ * une première objection ou question.
+ */
+export const startDiscussion = onCall(
+  { secrets: [anthropicApiKey] },
+  async (request) => {
+    const uid = requireAuth(request.auth?.uid);
+    const these: string = (request.data?.these ?? "").toString().trim();
+    if (these.length === 0) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Indique la thèse que tu défends pour l'instant."
+      );
+    }
+
+    const [corpusSnap, keySnap] = await Promise.all([
+      db.collection("corpora").doc(uid).get(),
+      db.collection("corpusKeys").doc(uid).get(),
+    ]);
+    const corpus = corpusSnap.data() as Corpus | undefined;
+    const corpusKey = keySnap.data() as CorpusKey | undefined;
+    if (!corpus) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Le dossier préparatoire n'a pas encore été généré."
+      );
+    }
+
+    const raw = await askClaudeForJSON<{ reponse: string }>({
+      system: DISCUSSION_SYSTEM_PROMPT,
+      user: buildDiscussionUserPrompt({
+        corpusQuestion: corpus.question,
+        pointsDeVueDossier: summarizePointsDeVue(corpus, corpusKey),
+        these,
+        historique: [],
+        dernierMessage: these,
+        tour: 1,
+        tourMax: DISCUSSION_MAX_TURNS,
+      }),
+      maxTokens: 600,
+    });
+
+    const now = admin.firestore.Timestamp.now();
+    const discussion: Discussion = {
+      these,
+      messages: [{ role: "ia", texte: raw.reponse, at: now }],
+      startedAt: now,
+      updatedAt: now,
+    };
+    await db.collection("discussions").doc(uid).set(discussion);
+
+    return { discussion };
+  }
+);
+
+/**
+ * Un tour de la discussion : l'élève répond à l'objection précédente, et
+ * l'IA relance avec une nouvelle objection, un contre-argument ou une
+ * question, jusqu'au nombre maximal de tours.
+ */
+export const discussionReply = onCall(
+  { secrets: [anthropicApiKey] },
+  async (request) => {
+    const uid = requireAuth(request.auth?.uid);
+    const message: string = (request.data?.message ?? "").toString().trim();
+    if (message.length === 0) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Écris une réponse avant de l'envoyer."
+      );
+    }
+
+    const [discSnap, corpusSnap, keySnap] = await Promise.all([
+      db.collection("discussions").doc(uid).get(),
+      db.collection("corpora").doc(uid).get(),
+      db.collection("corpusKeys").doc(uid).get(),
+    ]);
+    const discussion = discSnap.data() as Discussion | undefined;
+    const corpus = corpusSnap.data() as Corpus | undefined;
+    const corpusKey = keySnap.data() as CorpusKey | undefined;
+    if (!discussion || !corpus) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Commence la discussion avant d'y répondre."
+      );
+    }
+    if (discussion.synthese) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Cette discussion est déjà terminée."
+      );
+    }
+
+    const tourActuel = Math.floor(discussion.messages.length / 2) + 1;
+    if (tourActuel > DISCUSSION_MAX_TURNS) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Cette discussion a atteint son nombre maximal de tours. Termine-la pour obtenir ta synthèse."
+      );
+    }
+
+    const raw = await askClaudeForJSON<{ reponse: string }>({
+      system: DISCUSSION_SYSTEM_PROMPT,
+      user: buildDiscussionUserPrompt({
+        corpusQuestion: corpus.question,
+        pointsDeVueDossier: summarizePointsDeVue(corpus, corpusKey),
+        these: discussion.these,
+        historique: discussion.messages.map((m) => ({
+          role: m.role,
+          texte: m.texte,
+        })),
+        dernierMessage: message,
+        tour: tourActuel,
+        tourMax: DISCUSSION_MAX_TURNS,
+      }),
+      maxTokens: 600,
+    });
+
+    const now = admin.firestore.Timestamp.now();
+    const newMessages: DiscussionMessage[] = [
+      ...discussion.messages,
+      { role: "eleve", texte: message, at: now },
+      { role: "ia", texte: raw.reponse, at: now },
+    ];
+
+    await db
+      .collection("discussions")
+      .doc(uid)
+      .set({ messages: newMessages, updatedAt: now }, { merge: true });
+
+    return { reponse: raw.reponse, tour: tourActuel, tourMax: DISCUSSION_MAX_TURNS };
+  }
+);
+
+/**
+ * Termine la discussion et produit une synthèse formative (non notée) qui
+ * aide l'élève à passer à la rédaction de sa lettre ouverte.
+ */
+export const endDiscussion = onCall(
+  { secrets: [anthropicApiKey] },
+  async (request) => {
+    const uid = requireAuth(request.auth?.uid);
+    const discSnap = await db.collection("discussions").doc(uid).get();
+    const discussion = discSnap.data() as Discussion | undefined;
+    if (!discussion) {
+      throw new HttpsError("failed-precondition", "Aucune discussion à conclure.");
+    }
+    if (discussion.synthese) {
+      return { synthese: discussion.synthese, alreadyEnded: true };
+    }
+
+    const raw = await askClaudeForJSON<{ synthese: string }>({
+      system: DISCUSSION_SYNTHESIS_SYSTEM_PROMPT,
+      user: buildDiscussionSynthesisUserPrompt({
+        these: discussion.these,
+        historique: discussion.messages.map((m) => ({
+          role: m.role,
+          texte: m.texte,
+        })),
+      }),
+      maxTokens: 600,
+    });
+
+    await db
+      .collection("discussions")
+      .doc(uid)
+      .set(
+        {
+          synthese: raw.synthese,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+    return { synthese: raw.synthese, alreadyEnded: false };
+  }
+);

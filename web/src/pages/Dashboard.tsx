@@ -12,13 +12,13 @@ const STEPS: { state: string; label: string; description: string }[] = [
   },
   {
     state: "corpus_ready",
-    label: "2. Lecture et feuille de notes",
+    label: "2. Préparation autonome",
     description:
-      "Lisez le dossier à votre rythme, sur plusieurs jours si besoin, et consignez vos idées, citations et vocabulaire dans votre feuille de notes en style télégraphique.",
+      "À votre rythme, sur plusieurs jours si besoin : lisez et analysez le dossier (section A), confrontez vos idées en discussion avec l'IA (section B), puis consignez vos idées dans votre feuille de notes en style télégraphique.",
   },
   {
     state: "notes_validated",
-    label: "3. Jour de l'évaluation",
+    label: "3. Jour de l'évaluation (section C)",
     description:
       "Une fois votre feuille de notes validée, choisissez votre mode d'écriture — entraînement (pause possible) ou simulation d'examen (aucune sortie possible) — puis rédigez votre lettre ouverte en 3 h 15.",
   },
@@ -102,32 +102,56 @@ export default function Dashboard() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="flex gap-3">
-        {state === "not_started" && (
-          <button
-            onClick={handleGenerate}
-            disabled={busy}
-            className="rounded-md bg-slate-800 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700 disabled:opacity-50"
+      {state === "not_started" && (
+        <button
+          onClick={handleGenerate}
+          disabled={busy}
+          className="rounded-md bg-slate-800 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700 disabled:opacity-50"
+        >
+          {busy ? "Génération du dossier…" : "Recevoir mon dossier préparatoire"}
+        </button>
+      )}
+
+      {(state === "corpus_ready" || state === "notes_in_progress") && (
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Link
+            to="/dossier"
+            className="rounded-xl border border-slate-200 bg-white p-4 hover:border-slate-400"
           >
-            {busy ? "Génération du dossier…" : "Recevoir mon dossier préparatoire"}
-          </button>
-        )}
-        {(state === "corpus_ready" || state === "notes_in_progress") && (
-          <>
-            <Link
-              to="/dossier"
-              className="rounded-md bg-slate-800 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700"
-            >
-              Lire le dossier
-            </Link>
-            <Link
-              to="/notes"
-              className="rounded-md border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-100"
-            >
-              Ma feuille de notes
-            </Link>
-          </>
-        )}
+            <span className="block text-sm font-medium text-slate-800">Dossier préparatoire</span>
+            <span className="block text-xs text-slate-500 mt-1">Lire les textes du dossier.</span>
+          </Link>
+          <Link
+            to="/lecture"
+            className="rounded-xl border border-slate-200 bg-white p-4 hover:border-slate-400"
+          >
+            <span className="block text-sm font-medium text-slate-800">Section A — Analyse critique</span>
+            <span className="block text-xs text-slate-500 mt-1">
+              Thèse, point de vue, arguments et crédibilité des sources.
+            </span>
+          </Link>
+          <Link
+            to="/discussion"
+            className="rounded-xl border border-slate-200 bg-white p-4 hover:border-slate-400"
+          >
+            <span className="block text-sm font-medium text-slate-800">Section B — Discussion préparatoire</span>
+            <span className="block text-xs text-slate-500 mt-1">
+              Défends ta thèse face aux objections d'un pair simulé par l'IA.
+            </span>
+          </Link>
+          <Link
+            to="/notes"
+            className="rounded-xl border border-slate-200 bg-white p-4 hover:border-slate-400"
+          >
+            <span className="block text-sm font-medium text-slate-800">Ma feuille de notes</span>
+            <span className="block text-xs text-slate-500 mt-1">
+              Consigne tes idées en style télégraphique pour le jour de l'épreuve.
+            </span>
+          </Link>
+        </div>
+      )}
+
+      <div className="flex gap-3">
         {state === "notes_validated" && (
           <Link
             to="/examen"

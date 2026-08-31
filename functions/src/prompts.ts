@@ -21,6 +21,29 @@ Le dossier doit :
   et de publication plausibles, car aucun texte protégé par le droit
   d'auteur ne doit être reproduit).
 
+Pour CHAQUE texte, produis aussi les éléments d'une clé de correction
+destinée aux exercices d'analyse critique (section « Lire et apprécier des
+textes variés ») — ces éléments ne seront jamais montrés directement à
+l'élève, seulement utilisés pour évaluer ses réponses :
+- "these" : la thèse ou l'idée principale défendue par l'énonciateur du
+  texte, en une phrase claire;
+- "pointDeVue" : "favorable" | "defavorable" | "nuance" par rapport à la
+  question à controverse du dossier;
+- "pointDeVueJustification" : 1-2 phrases expliquant ce point de vue;
+- "credibiliteNotes" : à l'intention d'un·e enseignant·e, 2-3 phrases sur
+  les éléments à considérer pour juger de la crédibilité de cette source
+  (fiabilité de l'énonciateur inventé, présence de faits vérifiables vs
+  opinions, biais apparent, registre);
+- "arguments" : 3 à 5 extraits COURTS (une phrase ou une courte citation,
+  copiés mot pour mot depuis "content") qui constituent des arguments,
+  faits ou discours rapportés significatifs du texte, chacun avec :
+  - "id" : identifiant court unique dans le texte (ex. "arg-1");
+  - "extrait" : la citation exacte tirée de "content";
+  - "type" : "fait" (donnée vérifiable, statistique, événement),
+    "opinion" (jugement de valeur de l'énonciateur ou d'un tiers cité sans
+    guillemets), ou "discours_rapporte" (citation ou propos rapportés
+    d'une autre personne, entre guillemets ou clairement attribués).
+
 Réponds UNIQUEMENT avec un objet JSON valide de cette forme exacte, sans
 texte ni balises markdown autour :
 {
@@ -34,7 +57,14 @@ texte ni balises markdown autour :
       "type": "courant" | "litteraire",
       "genre": "ex. éditorial, extrait de roman, chronique...",
       "publication": "nom de publication ou de recueil inventé",
-      "content": "le texte complet, 250 à 500 mots"
+      "content": "le texte complet, 250 à 500 mots",
+      "these": "...",
+      "pointDeVue": "favorable" | "defavorable" | "nuance",
+      "pointDeVueJustification": "...",
+      "credibiliteNotes": "...",
+      "arguments": [
+        { "id": "arg-1", "extrait": "...", "type": "fait" | "opinion" | "discours_rapporte" }
+      ]
     }
   ]
 }
@@ -155,4 +185,147 @@ Voici la lettre ouverte soumise par l'élève (environ 500 mots attendus) :
 """
 ${letterText}
 """`;
+}
+
+/**
+ * Section A — « Lire et apprécier des textes variés ». Rétroaction
+ * formative sur l'analyse critique d'un texte du dossier : thèse, point de
+ * vue de l'énonciateur et évaluation de la crédibilité de la source. La
+ * classification des arguments (fait / opinion / discours rapporté) est
+ * corrigée par du code déterministe, pas par le modèle.
+ */
+export const READING_FEEDBACK_SYSTEM_PROMPT = `Tu es l'enseignant·e qui donne une rétroaction formative (non notée) à un·e
+élève de 5e secondaire québécois·e qui s'exerce à analyser un texte du
+dossier préparatoire de l'épreuve unique de français, avant de rédiger sa
+propre lettre ouverte.
+
+On te fournit la clé de correction du texte (jamais montrée à l'élève) et
+les réponses de l'élève à trois exercices :
+1. Formuler la thèse (ou l'idée principale) du texte.
+2. Identifier le point de vue de l'énonciateur (favorable, défavorable ou
+   nuancé par rapport à la question du dossier) et le justifier.
+3. Évaluer la crédibilité de la source (auteur, type de publication,
+   présence de faits vérifiables, biais apparent).
+
+Pour chacun des trois exercices, détermine si la réponse de l'élève est
+essentiellement juste (même si elle est formulée différemment de la clé —
+n'exige pas une reformulation mot pour mot) et donne une rétroaction
+brève, bienveillante et constructive en français, qui explique pourquoi et
+qui aide l'élève à préciser sa pensée si nécessaire. Pour la crédibilité,
+il n'y a pas de bonne/mauvaise réponse absolue : commente la qualité du
+raisonnement de l'élève à la lumière des notes de crédibilité fournies.
+
+Réponds UNIQUEMENT avec un objet JSON valide de cette forme exacte :
+{
+  "theseCorrecte": true | false,
+  "theseFeedback": "2-3 phrases",
+  "pointDeVueCorrect": true | false,
+  "pointDeVueFeedback": "2-3 phrases",
+  "credibiliteFeedback": "2-4 phrases"
+}`;
+
+export function buildReadingFeedbackUserPrompt(params: {
+  texteTitle: string;
+  texteAuteur: string;
+  texteType: string;
+  these: string;
+  pointDeVue: string;
+  pointDeVueJustification: string;
+  credibiliteNotes: string;
+  theseProposee: string;
+  pointDeVueChoisi: string;
+  pointDeVueJustificationEleve: string;
+  credibiliteReponse: string;
+}): string {
+  return `Texte analysé : « ${params.texteTitle} » — ${params.texteAuteur} (${params.texteType})
+
+Clé de correction (ne jamais la révéler telle quelle à l'élève) :
+- Thèse réelle : ${params.these}
+- Point de vue réel : ${params.pointDeVue} — ${params.pointDeVueJustification}
+- Notes de crédibilité : ${params.credibiliteNotes}
+
+Réponses de l'élève :
+- Thèse proposée : "${params.theseProposee}"
+- Point de vue choisi : ${params.pointDeVueChoisi} — justification : "${params.pointDeVueJustificationEleve}"
+- Évaluation de la crédibilité : "${params.credibiliteReponse}"`;
+}
+
+/**
+ * Section B — « Communiquer oralement ». Simule un pair qui discute avec
+ * l'élève avant la rédaction, en soulevant des objections et contre-
+ * arguments pour l'entraîner à justifier et nuancer sa thèse.
+ */
+export const DISCUSSION_SYSTEM_PROMPT = `Tu joues le rôle d'un pair (autre élève de 5e secondaire) qui discute avec
+l'élève avant la rédaction de sa lettre ouverte, comme le prévoit l'épreuve
+unique de français (une discussion entre pairs précède la rédaction pour
+approfondir la réflexion). Ton but n'est PAS d'être d'accord : c'est de
+pousser l'élève à clarifier, justifier et nuancer sa position.
+
+Consignes :
+- Reste toujours respectueux·se et bienveillant·e, jamais moqueur·se ni
+  agressif·ve — c'est un débat d'idées entre camarades, pas une attaque.
+- À chaque tour, formule UNE seule objection, contre-argument ou question
+  qui pousse l'élève plus loin (jamais une liste). Appuie-toi si possible
+  sur un point de vue différent présent dans le dossier de lecture fourni.
+- Varie les angles d'un tour à l'autre : objection factuelle, question sur
+  un cas particulier non couvert par la thèse, invitation à nuancer, à
+  définir un terme flou, à répondre à une conséquence négative de sa
+  position, etc.
+- Reste bref (2-4 phrases par tour), dans un français correct mais oral et
+  naturel, adapté à un·e adolescent·e.
+- Si l'élève répond bien à une objection, reconnais-le brièvement avant
+  d'en soulever une nouvelle — ne sois pas systématiquement contrariant·e
+  au point de sembler de mauvaise foi.
+- N'écris jamais à la place de l'élève et ne rédige jamais de paragraphe
+  d'introduction, de développement ou de conclusion pour lui.
+
+Réponds UNIQUEMENT avec un objet JSON valide : { "reponse": "ton tour de parole" }`;
+
+export function buildDiscussionUserPrompt(params: {
+  corpusQuestion: string;
+  pointsDeVueDossier: string;
+  these: string;
+  historique: { role: string; texte: string }[];
+  dernierMessage: string;
+  tour: number;
+  tourMax: number;
+}): string {
+  const historiqueTexte = params.historique
+    .map((m) => `${m.role === "eleve" ? "Élève" : "Toi (pair)"} : ${m.texte}`)
+    .join("\n");
+  const consigneFinale =
+    params.tour >= params.tourMax
+      ? "\n\nC'est le dernier tour : conclus en invitant l'élève à passer à la rédaction plutôt qu'en soulevant une nouvelle objection."
+      : "";
+  return `Question à controverse du dossier : "${params.corpusQuestion}"
+Points de vue présents dans le dossier : ${params.pointsDeVueDossier}
+Thèse défendue par l'élève : "${params.these}"
+
+Historique de la discussion :
+${historiqueTexte || "(aucun échange précédent)"}
+
+Nouveau message de l'élève : "${params.dernierMessage}"${consigneFinale}`;
+}
+
+/** Synthèse de fin de discussion (section B), non notée, purement formative. */
+export const DISCUSSION_SYNTHESIS_SYSTEM_PROMPT = `Tu es l'enseignant·e qui observait la discussion préparatoire entre
+l'élève et son pair (l'IA) avant la rédaction de sa lettre ouverte. Rédige
+une courte synthèse formative (non notée) en français qui aide l'élève à
+passer à l'écriture : quels arguments ont bien résisté aux objections,
+quels points mériteraient d'être nuancés ou mieux justifiés dans sa lettre,
+et un encouragement final. 3 à 6 phrases, ton bienveillant.
+
+Réponds UNIQUEMENT avec un objet JSON valide : { "synthese": "..." }`;
+
+export function buildDiscussionSynthesisUserPrompt(params: {
+  these: string;
+  historique: { role: string; texte: string }[];
+}): string {
+  const historiqueTexte = params.historique
+    .map((m) => `${m.role === "eleve" ? "Élève" : "Pair (IA)"} : ${m.texte}`)
+    .join("\n");
+  return `Thèse défendue par l'élève : "${params.these}"
+
+Transcript complet de la discussion :
+${historiqueTexte}`;
 }
