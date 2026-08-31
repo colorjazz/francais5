@@ -20,7 +20,7 @@ const STEPS: { state: string; label: string; description: string }[] = [
     state: "notes_validated",
     label: "3. Jour de l'évaluation",
     description:
-      "Une fois votre feuille de notes validée par l'évaluateur, vous pourrez démarrer la rédaction chronométrée de votre lettre ouverte (3 h 15).",
+      "Une fois votre feuille de notes validée, choisissez votre mode d'écriture — entraînement (pause possible) ou simulation d'examen (aucune sortie possible) — puis rédigez votre lettre ouverte en 3 h 15.",
   },
   {
     state: "exam_submitted",

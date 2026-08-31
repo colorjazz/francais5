@@ -36,10 +36,23 @@ automatiquement selon la grille ministérielle à cinq critères.
    (sauvegarde automatique).
 3. **Jour de l'évaluation** — L'élève soumet sa feuille de notes à
    `validateNotes`, qui vérifie le style télégraphique et l'absence de
-   texte suivi déjà rédigé. Une fois la feuille conforme, `startExam`
-   fixe côté serveur l'heure de début et l'échéance (3 h 15). L'élève
-   rédige sa lettre ouverte ; `submitLetter` refuse toute soumission
-   après l'échéance (hors petite marge réseau) et empêche la double
+   texte suivi déjà rédigé. Une fois la feuille conforme, l'élève choisit
+   son mode d'écriture, puis `startExam({ mode })` fixe côté serveur
+   l'heure de début et l'échéance (3 h 15) :
+   - **Entraînement** — l'élève peut quitter la session d'écriture à tout
+     moment (bouton « Quitter », ou simplement en changeant d'onglet) ;
+     `pauseExam` fige alors le temps restant côté serveur, et `resumeExam`
+     recalcule une nouvelle échéance à partir de ce temps restant lorsque
+     l'élève revient, sans jamais accorder de temps bonus.
+   - **Simulation d'examen** — conditions réelles : `pauseExam` et
+     `resumeExam` refusent systématiquement toute requête pour ce mode
+     (vérifié côté serveur, pas seulement dans l'interface), l'échéance
+     continue de courir quoi que fasse l'élève, et l'interface verrouille
+     la navigation sur la page d'écriture et avertit avant une fermeture
+     accidentelle de l'onglet.
+
+   Dans les deux cas, `submitLetter` refuse toute soumission après
+   l'échéance effective (hors petite marge réseau) et empêche la double
    soumission.
 4. **Correction** — `gradeLetter` applique la grille officielle à cinq
    critères (adaptation 30 %, cohérence 20 %, vocabulaire 5 %, syntaxe et
@@ -101,6 +114,13 @@ firebase deploy --only firestore:rules,functions,hosting
   rafraîchissement de page ; la soumission officielle, elle, passe
   toujours par la Cloud Function `submitLetter`, qui horodate côté
   serveur et fait foi.
+- La mise en pause automatique du mode entraînement repose sur
+  l'événement `visibilitychange` (déclenché quand l'onglet est masqué),
+  complétée par un bouton « Quitter » explicite : c'est du best-effort,
+  pas une garantie absolue en cas de fermeture brutale du navigateur. Le
+  mode simulation, lui, ne dépend d'aucune détection côté client pour sa
+  garantie principale — `pauseExam`/`resumeExam` refusent ce mode côté
+  serveur, donc l'échéance continue de courir quoi qu'il arrive au client.
 - Les textes du dossier préparatoire sont des créations originales
   générées par le modèle (jamais des extraits d'œuvres protégées
   attribués à de vrais auteurs), pour éviter tout problème de droit

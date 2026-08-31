@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const STEP_LABELS: Record<string, string> = {
@@ -13,6 +14,20 @@ const STEP_LABELS: Record<string, string> = {
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { user, profile, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Mode simulation d'examen en cours : la session est verrouillée sur la
+  // page d'écriture, quelle que soit la route visée par l'élève.
+  const locked =
+    profile?.examState === "exam_in_progress" &&
+    profile?.examMode === "simulation";
+
+  useEffect(() => {
+    if (locked && location.pathname !== "/examen") {
+      navigate("/examen", { replace: true });
+    }
+  }, [locked, location.pathname, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -29,12 +44,21 @@ export default function Layout({ children }: { children: ReactNode }) {
               {profile ? STEP_LABELS[profile.examState] : "…"}
             </span>
             <span className="text-slate-500">{user.email}</span>
-            <button
-              onClick={() => logout()}
-              className="text-slate-500 underline hover:text-slate-800"
-            >
-              Se déconnecter
-            </button>
+            {locked ? (
+              <span
+                className="text-slate-300 cursor-not-allowed"
+                title="Verrouillé pendant la simulation d'examen"
+              >
+                Se déconnecter
+              </span>
+            ) : (
+              <button
+                onClick={() => logout()}
+                className="text-slate-500 underline hover:text-slate-800"
+              >
+                Se déconnecter
+              </button>
+            )}
           </div>
         )}
       </header>

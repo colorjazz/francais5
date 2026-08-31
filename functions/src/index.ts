@@ -13,6 +13,7 @@ import {
 import { applyGradingRules } from "./grading";
 import {
   Corpus,
+  ExamMode,
   ExamState,
   NotesValidation,
   RawGradingModelOutput,
@@ -152,9 +153,14 @@ export const validateNotes = onCall(
 );
 
 /**
- * Démarre officiellement l'épreuve chronométrée (3h15). L'heure de départ
- * et l'échéance sont fixées côté serveur pour empêcher toute manipulation
- * du chronomètre par le client.
+ * Démarre officiellement l'épreuve chronométrée (3h15), dans l'un de deux
+ * modes choisis par l'élève :
+ * - "entrainement" : l'élève peut quitter (pauseExam / resumeExam) et le
+ *   chronomètre s'arrête pendant son absence.
+ * - "simulation" : conditions réelles — aucune pause possible, quoi que
+ *   fasse l'élève côté client ; seul ce serveur fait foi pour l'échéance.
+ * L'heure de départ et l'échéance sont fixées côté serveur pour empêcher
+ * toute manipulation du chronomètre par le client.
  */
 export const startExam = onCall({}, async (request) => {
   const uid = requireAuth(request.auth?.uid);
@@ -162,9 +168,13 @@ export const startExam = onCall({}, async (request) => {
 
   if (state === "exam_in_progress") {
     const userSnap = await db.collection("users").doc(uid).get();
+    const data = userSnap.data();
     return {
-      examStartTime: userSnap.data()?.examStartTime,
-      examDeadline: userSnap.data()?.examDeadline,
+      examStartTime: data?.examStartTime,
+      examDeadline: data?.examDeadline,
+      examMode: data?.examMode,
+      examRunning: data?.examRunning,
+      examRemainingMs: data?.examRemainingMs,
       alreadyStarted: true,
     };
   }
@@ -173,6 +183,14 @@ export const startExam = onCall({}, async (request) => {
     throw new HttpsError(
       "failed-precondition",
       "La feuille de notes doit être validée avant de commencer l'épreuve."
+    );
+  }
+
+  const mode = request.data?.mode as ExamMode | undefined;
+  if (mode !== "entrainement" && mode !== "simulation") {
+    throw new HttpsError(
+      "invalid-argument",
+      "Choisis le mode « entraînement » ou « simulation d'examen »."
     );
   }
 
@@ -186,11 +204,106 @@ export const startExam = onCall({}, async (request) => {
       examState: "exam_in_progress" satisfies ExamState,
       examStartTime: now,
       examDeadline: deadline,
+      examMode: mode,
+      examRunning: true,
+      examRemainingMs: EXAM_DURATION_MS,
     },
     { merge: true }
   );
 
-  return { examStartTime: now, examDeadline: deadline, alreadyStarted: false };
+  return {
+    examStartTime: now,
+    examDeadline: deadline,
+    examMode: mode,
+    examRunning: true,
+    examRemainingMs: EXAM_DURATION_MS,
+    alreadyStarted: false,
+  };
+});
+
+/**
+ * Met le chronomètre en pause (mode "entrainement" seulement) lorsque
+ * l'élève quitte la session d'écriture. Le temps restant est figé côté
+ * serveur ; le mode "simulation" refuse systématiquement cet appel.
+ */
+export const pauseExam = onCall({}, async (request) => {
+  const uid = requireAuth(request.auth?.uid);
+  const userRef = db.collection("users").doc(uid);
+  const snap = await userRef.get();
+  const data = snap.data();
+
+  if ((data?.examState as ExamState) !== "exam_in_progress") {
+    throw new HttpsError(
+      "failed-precondition",
+      "Aucune épreuve en cours à mettre en pause."
+    );
+  }
+  if (data?.examMode !== "entrainement") {
+    throw new HttpsError(
+      "permission-denied",
+      "Le mode simulation d'examen ne permet pas de mettre le chronomètre en pause."
+    );
+  }
+  if (data?.examRunning === false) {
+    return { examRemainingMs: data?.examRemainingMs ?? 0, alreadyPaused: true };
+  }
+
+  const deadline = data?.examDeadline as FirebaseFirestore.Timestamp | undefined;
+  const now = admin.firestore.Timestamp.now();
+  const remaining = Math.max(0, (deadline?.toMillis() ?? now.toMillis()) - now.toMillis());
+
+  await userRef.set(
+    { examRunning: false, examRemainingMs: remaining },
+    { merge: true }
+  );
+
+  return { examRemainingMs: remaining, alreadyPaused: false };
+});
+
+/**
+ * Reprend le chronomètre (mode "entrainement" seulement) là où il avait
+ * été mis en pause : une nouvelle échéance est recalculée côté serveur à
+ * partir du temps restant figé, sans jamais accorder de temps bonus.
+ */
+export const resumeExam = onCall({}, async (request) => {
+  const uid = requireAuth(request.auth?.uid);
+  const userRef = db.collection("users").doc(uid);
+  const snap = await userRef.get();
+  const data = snap.data();
+
+  if ((data?.examState as ExamState) !== "exam_in_progress") {
+    throw new HttpsError(
+      "failed-precondition",
+      "Aucune épreuve en cours à reprendre."
+    );
+  }
+  if (data?.examMode !== "entrainement") {
+    throw new HttpsError(
+      "permission-denied",
+      "Le mode simulation d'examen ne permet pas de mettre le chronomètre en pause."
+    );
+  }
+  if (data?.examRunning === true) {
+    return { examDeadline: data?.examDeadline, alreadyRunning: true };
+  }
+
+  const remaining = Math.max(0, (data?.examRemainingMs as number | undefined) ?? 0);
+  if (remaining <= 0) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Le temps alloué est écoulé : remets ta copie."
+    );
+  }
+
+  const now = admin.firestore.Timestamp.now();
+  const deadline = admin.firestore.Timestamp.fromMillis(now.toMillis() + remaining);
+
+  await userRef.set(
+    { examRunning: true, examDeadline: deadline },
+    { merge: true }
+  );
+
+  return { examDeadline: deadline, alreadyRunning: false };
 });
 
 /**
@@ -225,8 +338,21 @@ export const submitLetter = onCall({}, async (request) => {
     | undefined;
   const now = admin.firestore.Timestamp.now();
 
+  // En mode entraînement, une session en pause a un temps restant figé
+  // (examRemainingMs) plutôt qu'une échéance qui continue de courir : on
+  // reconstitue une échéance équivalente pour réutiliser la même règle de
+  // dépassement de délai ci-dessous.
+  const effectiveDeadlineMs =
+    userData?.examRunning === false
+      ? now.toMillis() + Math.max(0, (userData?.examRemainingMs as number | undefined) ?? 0)
+      : deadline?.toMillis();
+
   const GRACE_MS = 60_000;
-  if (deadline && now.toMillis() > deadline.toMillis() + GRACE_MS && !autoSubmitted) {
+  if (
+    effectiveDeadlineMs !== undefined &&
+    now.toMillis() > effectiveDeadlineMs + GRACE_MS &&
+    !autoSubmitted
+  ) {
     throw new HttpsError(
       "deadline-exceeded",
       "Le temps alloué (3h15) est écoulé."

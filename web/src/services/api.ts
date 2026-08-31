@@ -1,6 +1,6 @@
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../firebase";
-import { Corpus, GradingResult, NotesValidation } from "../types";
+import { Corpus, ExamMode, GradingResult, NotesValidation } from "../types";
 
 export async function generateCorpus(
   topic?: string
@@ -18,17 +18,44 @@ export async function validateNotes(
   return result.data as NotesValidation;
 }
 
-export async function startExam(): Promise<{
+export async function startExam(mode: ExamMode): Promise<{
   examStartTime: { seconds: number; nanoseconds: number };
   examDeadline: { seconds: number; nanoseconds: number };
+  examMode: ExamMode;
+  examRunning: boolean;
+  examRemainingMs: number;
   alreadyStarted: boolean;
 }> {
   const call = httpsCallable(functions, "startExam");
-  const result = await call({});
+  const result = await call({ mode });
   return result.data as {
     examStartTime: { seconds: number; nanoseconds: number };
     examDeadline: { seconds: number; nanoseconds: number };
+    examMode: ExamMode;
+    examRunning: boolean;
+    examRemainingMs: number;
     alreadyStarted: boolean;
+  };
+}
+
+export async function pauseExam(): Promise<{
+  examRemainingMs: number;
+  alreadyPaused: boolean;
+}> {
+  const call = httpsCallable(functions, "pauseExam");
+  const result = await call({});
+  return result.data as { examRemainingMs: number; alreadyPaused: boolean };
+}
+
+export async function resumeExam(): Promise<{
+  examDeadline: { seconds: number; nanoseconds: number };
+  alreadyRunning: boolean;
+}> {
+  const call = httpsCallable(functions, "resumeExam");
+  const result = await call({});
+  return result.data as {
+    examDeadline: { seconds: number; nanoseconds: number };
+    alreadyRunning: boolean;
   };
 }
 

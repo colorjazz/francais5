@@ -7,6 +7,13 @@ export type ExamState =
   | "exam_submitted"
   | "graded";
 
+/**
+ * "entrainement" : l'élève peut quitter la session d'écriture ; le
+ * chronomètre se met en pause pendant son absence.
+ * "simulation" : conditions réelles de l'épreuve — aucune pause possible.
+ */
+export type ExamMode = "entrainement" | "simulation";
+
 export type TextType = "courant" | "litteraire";
 
 export interface CorpusText {
@@ -61,4 +68,7 @@ export interface UserProfile {
   displayName?: string;
   examStartTime?: { seconds: number; nanoseconds: number };
   examDeadline?: { seconds: number; nanoseconds: number };
+  examMode?: ExamMode;
+  examRunning?: boolean;
+  examRemainingMs?: number;
 }
