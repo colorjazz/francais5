@@ -18,7 +18,7 @@ interface SpeechRecognitionLike {
   stop(): void;
   onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
   onend: (() => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
 }
 type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
 
@@ -28,6 +28,22 @@ function getSpeechRecognitionCtor(): SpeechRecognitionCtor | undefined {
     webkitSpeechRecognition?: SpeechRecognitionCtor;
   };
   return w.SpeechRecognition ?? w.webkitSpeechRecognition;
+}
+
+function describeVoiceError(code: string | undefined): string {
+  switch (code) {
+    case "not-allowed":
+    case "service-not-allowed":
+      return "Micro refusé ou bloqué par le navigateur. Autorise-le dans les paramètres du site pour dicter ta réponse.";
+    case "no-speech":
+      return "Rien entendu — réessaie en parlant après avoir cliqué sur le micro.";
+    case "audio-capture":
+      return "Aucun micro détecté sur cet appareil.";
+    case "network":
+      return "Problème réseau pendant la reconnaissance vocale — réessaie.";
+    default:
+      return "La dictée vocale n'est pas disponible pour l'instant. Tu peux écrire ta réponse directement.";
+  }
 }
 
 function speak(text: string) {
@@ -48,6 +64,7 @@ export default function Discussion() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
@@ -117,6 +134,7 @@ export default function Discussion() {
       recognitionRef.current?.stop();
       return;
     }
+    setVoiceError(null);
     const recognition = new Ctor();
     recognition.lang = "fr-CA";
     recognition.interimResults = false;
@@ -127,10 +145,17 @@ export default function Discussion() {
       setMessage((m) => (m ? m + " " + transcript : transcript));
     };
     recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
+    recognition.onerror = (e) => {
+      setListening(false);
+      setVoiceError(describeVoiceError(e?.error));
+    };
     recognitionRef.current = recognition;
-    recognition.start();
-    setListening(true);
+    try {
+      recognition.start();
+      setListening(true);
+    } catch {
+      setVoiceError(describeVoiceError(undefined));
+    }
   }
 
   if (!loaded) return null;
@@ -222,6 +247,7 @@ export default function Discussion() {
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
+      {voiceError && <p className="text-sm text-amber-600">{voiceError}</p>}
 
       {ended ? (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
