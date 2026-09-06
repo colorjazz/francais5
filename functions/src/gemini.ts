@@ -3,20 +3,14 @@ import { defineSecret, defineString } from "firebase-functions/params";
 
 export const geminiApiKey = defineSecret("GEMINI_API_KEY");
 export const geminiModel = defineString("GEMINI_MODEL", {
-  default: "gemini-2.0-flash",
+  default: "gemini-3.6-flash",
 });
 
 let client: GoogleGenerativeAI | undefined;
 
 function getClient(): GoogleGenerativeAI {
   if (!client) {
-    const key = geminiApiKey.value();
-    // Diagnostic temporaire : ne jamais logger la clé elle-même, seulement
-    // sa forme, pour vérifier qu'elle arrive bien jusqu'ici sans l'exposer.
-    console.log(
-      `[diagnostic] GEMINI_API_KEY reçue : longueur=${key.length}, préfixe="${key.slice(0, 4)}"`
-    );
-    client = new GoogleGenerativeAI(key);
+    client = new GoogleGenerativeAI(geminiApiKey.value());
   }
   return client;
 }
