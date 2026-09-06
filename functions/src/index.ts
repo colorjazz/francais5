@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { setGlobalOptions } from "firebase-functions/v2";
-import { askClaudeForJSON, anthropicApiKey } from "./claude";
+import { askGeminiForJSON, geminiApiKey } from "./gemini";
 import {
   buildCorpusUserPrompt,
   buildDiscussionSynthesisUserPrompt,
@@ -81,7 +81,7 @@ function summarizePointsDeVue(corpus: Corpus, corpusKey: CorpusKey | undefined):
  * mêmes textes en se reconnectant les jours suivants.
  */
 export const generateCorpus = onCall(
-  { secrets: [anthropicApiKey] },
+  { secrets: [geminiApiKey] },
   async (request) => {
     const uid = requireAuth(request.auth?.uid);
     const existing = await db.collection("corpora").doc(uid).get();
@@ -90,7 +90,7 @@ export const generateCorpus = onCall(
     }
 
     const topic: string | undefined = request.data?.topic;
-    const raw = await askClaudeForJSON<RawCorpusResponse>({
+    const raw = await askGeminiForJSON<RawCorpusResponse>({
       system: CORPUS_SYSTEM_PROMPT,
       user: buildCorpusUserPrompt(topic),
       maxTokens: 8000,
@@ -157,7 +157,7 @@ export const generateCorpus = onCall(
  * suivi déjà rédigé) avant de pouvoir commencer la rédaction chronométrée.
  */
 export const validateNotes = onCall(
-  { secrets: [anthropicApiKey] },
+  { secrets: [geminiApiKey] },
   async (request) => {
     const uid = requireAuth(request.auth?.uid);
     const notesContent: string = (request.data?.content ?? "").toString();
@@ -178,7 +178,7 @@ export const validateNotes = onCall(
       );
     }
 
-    const rawResult = await askClaudeForJSON<
+    const rawResult = await askGeminiForJSON<
       Omit<NotesValidation, "checkedAt">
     >({
       system: NOTES_VALIDATION_SYSTEM_PROMPT,
@@ -444,7 +444,7 @@ export const submitLetter = onCall({}, async (request) => {
  * mis à zéro), appliquée côté serveur indépendamment du modèle.
  */
 export const gradeLetter = onCall(
-  { secrets: [anthropicApiKey] },
+  { secrets: [geminiApiKey] },
   async (request) => {
     const uid = requireAuth(request.auth?.uid);
     const state = await getExamState(uid);
@@ -470,7 +470,7 @@ export const gradeLetter = onCall(
       throw new HttpsError("failed-precondition", "Soumission introuvable.");
     }
 
-    const raw = await askClaudeForJSON<RawGradingModelOutput>({
+    const raw = await askGeminiForJSON<RawGradingModelOutput>({
       system: GRADING_SYSTEM_PROMPT,
       user: buildGradingUserPrompt(submission.letterText, corpus.question),
       maxTokens: 4000,
@@ -513,7 +513,7 @@ export const getExamConfig = onCall({}, async () => {
  * partie de la note de l'épreuve.
  */
 export const submitReadingAnalysis = onCall(
-  { secrets: [anthropicApiKey] },
+  { secrets: [geminiApiKey] },
   async (request) => {
     const uid = requireAuth(request.auth?.uid);
     const textId: string = (request.data?.textId ?? "").toString();
@@ -582,7 +582,7 @@ export const submitReadingAnalysis = onCall(
         )
       : 100;
 
-    const raw = await askClaudeForJSON<RawReadingFeedback>({
+    const raw = await askGeminiForJSON<RawReadingFeedback>({
       system: READING_FEEDBACK_SYSTEM_PROMPT,
       user: buildReadingFeedbackUserPrompt({
         texteTitle: text.title,
@@ -640,7 +640,7 @@ export const submitReadingAnalysis = onCall(
  * une première objection ou question.
  */
 export const startDiscussion = onCall(
-  { secrets: [anthropicApiKey] },
+  { secrets: [geminiApiKey] },
   async (request) => {
     const uid = requireAuth(request.auth?.uid);
     const these: string = (request.data?.these ?? "").toString().trim();
@@ -664,7 +664,7 @@ export const startDiscussion = onCall(
       );
     }
 
-    const raw = await askClaudeForJSON<{ reponse: string }>({
+    const raw = await askGeminiForJSON<{ reponse: string }>({
       system: DISCUSSION_SYSTEM_PROMPT,
       user: buildDiscussionUserPrompt({
         corpusQuestion: corpus.question,
@@ -697,7 +697,7 @@ export const startDiscussion = onCall(
  * question, jusqu'au nombre maximal de tours.
  */
 export const discussionReply = onCall(
-  { secrets: [anthropicApiKey] },
+  { secrets: [geminiApiKey] },
   async (request) => {
     const uid = requireAuth(request.auth?.uid);
     const message: string = (request.data?.message ?? "").toString().trim();
@@ -737,7 +737,7 @@ export const discussionReply = onCall(
       );
     }
 
-    const raw = await askClaudeForJSON<{ reponse: string }>({
+    const raw = await askGeminiForJSON<{ reponse: string }>({
       system: DISCUSSION_SYSTEM_PROMPT,
       user: buildDiscussionUserPrompt({
         corpusQuestion: corpus.question,
@@ -775,7 +775,7 @@ export const discussionReply = onCall(
  * aide l'élève à passer à la rédaction de sa lettre ouverte.
  */
 export const endDiscussion = onCall(
-  { secrets: [anthropicApiKey] },
+  { secrets: [geminiApiKey] },
   async (request) => {
     const uid = requireAuth(request.auth?.uid);
     const discSnap = await db.collection("discussions").doc(uid).get();
@@ -787,7 +787,7 @@ export const endDiscussion = onCall(
       return { synthese: discussion.synthese, alreadyEnded: true };
     }
 
-    const raw = await askClaudeForJSON<{ synthese: string }>({
+    const raw = await askGeminiForJSON<{ synthese: string }>({
       system: DISCUSSION_SYNTHESIS_SYSTEM_PROMPT,
       user: buildDiscussionSynthesisUserPrompt({
         these: discussion.these,

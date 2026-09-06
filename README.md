@@ -28,8 +28,8 @@ pour la revue de design.
   éditeur de la feuille de notes, module d'écriture chronométré, affichage
   des résultats.
 - **`functions/`** — Cloud Functions (Firebase, Node/TypeScript) qui
-  appellent l'API Claude (Anthropic) pour générer le corpus (et sa clé de
-  correction cachée), donner une rétroaction sur l'analyse critique, jouer
+  appellent l'API Gemini (Google AI Studio) pour générer le corpus (et sa
+  clé de correction cachée), donner une rétroaction sur l'analyse critique, jouer
   le rôle du pair de discussion, valider la feuille de notes et corriger
   la lettre ouverte — et qui appliquent côté serveur les règles non
   négociables (délai de 3 h 15, seuil de 35 erreurs).
@@ -105,7 +105,7 @@ pour la revue de design.
 
 - Node.js 20+
 - Un projet Firebase (Auth par courriel/mot de passe + Firestore activés)
-- Une clé API Anthropic (Claude)
+- Une clé API Gemini (créée sur [aistudio.google.com/apikey](https://aistudio.google.com/apikey))
 - La CLI Firebase (`npm i -g firebase-tools`)
 
 ### Configuration
@@ -119,7 +119,7 @@ cp web/.env.example web/.env.local
 # remplissez web/.env.local avec la config SDK de votre app Firebase
 
 # Cloud Functions — clé API stockée comme secret (jamais commitée)
-firebase functions:secrets:set ANTHROPIC_API_KEY
+firebase functions:secrets:set GEMINI_API_KEY
 ```
 
 ### Développement local
