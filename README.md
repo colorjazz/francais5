@@ -17,6 +17,10 @@ unique ministérielle de français, langue d'enseignement, 5e secondaire
   simulation d'examen, corrigée automatiquement selon la grille
   ministérielle à cinq critères.
 
+Une maquette interactive du parcours complet, avec données fictives et
+sans backend requis, est disponible dans [`preview/`](preview/apercu.html)
+pour la revue de design.
+
 ## Architecture
 
 - **`web/`** — Frontend React + TypeScript + Vite + Tailwind CSS.

@@ -1,0 +1,1341 @@
+<title>Cahier d'écriture</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+/>
+<style>
+  :root {
+    --bg: #f1f3f7;
+    --surface: #ffffff;
+    --surface-alt: #e7eaf1;
+    --surface-alt-2: #dde2ec;
+    --line: #d3d8e2;
+    --ink: #1a2233;
+    --ink-soft: #4e5a70;
+    --ink-faint: #7c869b;
+    --accent: #24466e;
+    --accent-strong: #17304f;
+    --accent-soft: #dce6f2;
+    --good: #2f6f4e;
+    --good-soft: #e1f0e7;
+    --good-line: #b8dbc6;
+    --warn: #9a5b12;
+    --warn-soft: #f5e9d7;
+    --danger: #a62b22;
+    --danger-soft: #f6e4e1;
+    --danger-line: #e6b7b0;
+    --shadow: 0 1px 2px rgba(23, 33, 55, 0.06), 0 8px 24px -12px rgba(23, 33, 55, 0.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10151f;
+      --surface: #171e2c;
+      --surface-alt: #1f2836;
+      --surface-alt-2: #263042;
+      --line: #2c3a4f;
+      --ink: #e8ecf3;
+      --ink-soft: #aab6c9;
+      --ink-faint: #7c8ba3;
+      --accent: #7fa5d6;
+      --accent-strong: #a9c4e6;
+      --accent-soft: #223349;
+      --good: #7fbf9a;
+      --good-soft: #16261d;
+      --good-line: #2c4a38;
+      --warn: #d9a45f;
+      --warn-soft: #2c2415;
+      --danger: #e0857c;
+      --danger-soft: #2c1917;
+      --danger-line: #4a2a26;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10151f;
+    --surface: #171e2c;
+    --surface-alt: #1f2836;
+    --surface-alt-2: #263042;
+    --line: #2c3a4f;
+    --ink: #e8ecf3;
+    --ink-soft: #aab6c9;
+    --ink-faint: #7c8ba3;
+    --accent: #7fa5d6;
+    --accent-strong: #a9c4e6;
+    --accent-soft: #223349;
+    --good: #7fbf9a;
+    --good-soft: #16261d;
+    --good-line: #2c4a38;
+    --warn: #d9a45f;
+    --warn-soft: #2c2415;
+    --danger: #e0857c;
+    --danger-soft: #2c1917;
+    --danger-line: #4a2a26;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .display {
+    font-family: "Fraunces", ui-serif, Georgia, serif;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+  .mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* ---- shell ---- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 28px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .topbar-title .mark {
+    font-family: "Fraunces", serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+  }
+  .topbar-title .sub {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+  .badge-demo {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--warn-soft);
+    color: var(--warn);
+    border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+    white-space: nowrap;
+  }
+  .step-pill {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--surface-alt);
+    border: 1px solid var(--line);
+  }
+
+  main { display: flex; justify-content: center; padding: 0 20px 96px; }
+  .sheet {
+    width: 100%;
+    max-width: 760px;
+    padding-top: 40px;
+  }
+  .view { display: none; }
+  .view.active { display: block; animation: rise 0.35s ease; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 6px;
+  }
+  .lead { color: var(--ink-soft); line-height: 1.6; max-width: 60ch; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 7px;
+    padding: 10px 18px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: transform 0.12s ease, background 0.15s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-strong); }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); }
+  .btn-ghost:hover { background: var(--surface-alt); color: var(--ink); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { filter: brightness(1.06); }
+
+  input[type="text"], input[type="email"], input[type="password"], textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.92rem;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  textarea { line-height: 1.6; resize: vertical; }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  label.field-label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+  }
+
+  /* ---- login ---- */
+  .login-wrap { display: flex; justify-content: center; padding-top: 64px; }
+  .login-card { width: 100%; max-width: 380px; padding: 32px; }
+  .login-card h1 { font-size: 1.35rem; margin: 0 0 4px; }
+  .login-card .lead { font-size: 0.88rem; margin-bottom: 22px; }
+  .field { margin-bottom: 14px; }
+
+  /* ---- stepper ---- */
+  .stepper { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 10px; }
+  .step {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 12px;
+    padding: 16px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .step.is-active { border-color: var(--accent); box-shadow: var(--shadow); }
+  .step.is-done { background: var(--good-soft); border-color: var(--good-line); }
+  .step.is-idle { opacity: 0.55; }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "IBM Plex Mono", monospace; font-size: 0.75rem;
+    background: var(--surface-alt); color: var(--ink-soft);
+  }
+  .step.is-active .step-num { background: var(--accent); color: #fff; }
+  .step.is-done .step-num { background: var(--good); color: #fff; }
+  .step h3 { margin: 0 0 3px; font-size: 0.98rem; }
+  .step p { margin: 0; font-size: 0.82rem; color: var(--ink-soft); line-height: 1.5; }
+
+  /* ---- corpus ---- */
+  .corpus-head { margin-bottom: 18px; }
+  .corpus-head .question { font-size: 1.3rem; margin: 4px 0 6px; }
+  .corpus-layout { display: grid; grid-template-columns: 190px 1fr; gap: 18px; }
+  .tabs { display: flex; flex-direction: column; gap: 6px; }
+  .tab {
+    text-align: left;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 9px 11px;
+    cursor: pointer;
+    font-size: 0.82rem;
+  }
+  .tab .n { display: block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--ink-faint); }
+  .tab .t { display: block; margin-top: 2px; color: var(--ink); font-weight: 500; }
+  .tab.is-active { border-color: var(--accent); background: var(--accent-soft); }
+  .tab.is-active .n { color: var(--accent); }
+  .text-type {
+    display: inline-block;
+    font-size: 0.66rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--surface-alt);
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .text-type.lit { background: var(--accent-soft); color: var(--accent); }
+  .reading { padding: 26px 28px; }
+  .reading h3 { font-size: 1.15rem; margin: 0 0 2px; }
+  .reading .byline { font-size: 0.8rem; color: var(--ink-faint); margin-bottom: 16px; }
+  .reading .body-text { line-height: 1.75; color: var(--ink); white-space: pre-line; }
+  .reading .body-text::first-letter {
+    font-family: "Fraunces", serif; font-size: 2.6em; font-weight: 600;
+    float: left; line-height: 0.85; padding: 0.05em 0.07em 0 0; color: var(--accent);
+  }
+
+  /* ---- notes ---- */
+  .notes-hint { font-size: 0.84rem; color: var(--ink-soft); line-height: 1.55; margin: 6px 0 16px; }
+  .notes-hint strong { color: var(--ink); }
+  .meta-row { display: flex; align-items: center; justify-content: space-between; margin: 10px 0 16px; font-size: 0.8rem; color: var(--ink-faint); }
+  .verdict {
+    margin-top: 18px; border-radius: 10px; padding: 18px 20px; border: 1px solid;
+  }
+  .verdict.ok { background: var(--good-soft); border-color: var(--good-line); }
+  .verdict.bad { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
+  .verdict h4 { margin: 0 0 6px; font-size: 0.95rem; }
+  .verdict.ok h4 { color: var(--good); }
+  .verdict.bad h4 { color: var(--warn); }
+  .verdict p { margin: 0 0 8px; font-size: 0.85rem; color: var(--ink-soft); line-height: 1.55; }
+  .verdict .excerpt { font-style: italic; font-size: 0.83rem; color: var(--ink); background: var(--surface); border: 1px dashed var(--line); border-radius: 6px; padding: 8px 10px; margin-top: 6px; }
+
+  /* ---- exam ---- */
+  .exam-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
+  .timer {
+    font-family: "IBM Plex Mono", monospace; font-size: 1.4rem; font-weight: 600;
+    padding: 8px 16px; border-radius: 8px; background: var(--surface-alt); color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .timer.low { background: var(--danger-soft); color: var(--danger); }
+  .exam-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; gap: 12px; }
+  .mode-badge {
+    font-size: 0.68rem; letter-spacing: 0.03em; padding: 3px 9px; border-radius: 999px;
+  }
+  .mode-badge.entrainement { background: var(--surface-alt); color: var(--ink-soft); }
+  .mode-badge.simulation { background: var(--accent); color: #fff; }
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
+  @media (max-width: 620px) { .mode-grid { grid-template-columns: 1fr; } }
+  .mode-card { padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+  .mode-card.accent { border-color: var(--accent); }
+  .mode-card h3 { margin: 0; font-size: 1.05rem; }
+  .mode-card p { margin: 0; font-size: 0.85rem; color: var(--ink-soft); line-height: 1.55; flex: 1; }
+  .lock-banner {
+    display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 16px;
+  }
+  .paused-card { padding: 26px 28px; }
+  .paused-card .huge { font-family: "Fraunces", serif; font-weight: 600; font-size: 2.1rem; margin: 10px 0 4px; }
+
+  /* ---- results ---- */
+  .score-row { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin: 6px 0 4px; }
+  .score-big { font-family: "Fraunces", serif; font-weight: 600; font-size: 3.2rem; line-height: 1; }
+  .score-big .of { font-family: "Public Sans", sans-serif; font-size: 1.1rem; font-weight: 500; color: var(--ink-faint); }
+  .penalty-toggle {
+    display: flex; align-items: center; gap: 9px; font-size: 0.82rem; color: var(--ink-soft);
+    background: var(--surface-alt); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px;
+  }
+  .penalty-note { font-size: 0.83rem; color: var(--danger); margin-top: 6px; line-height: 1.5; }
+  .criteria { margin-top: 22px; padding: 6px 22px; }
+  .criterion { padding: 15px 0; border-bottom: 1px solid var(--line); }
+  .criterion:last-child { border-bottom: none; }
+  .criterion .row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .criterion .label { font-size: 0.88rem; font-weight: 600; }
+  .criterion .pts { font-family: "IBM Plex Mono", monospace; font-size: 0.85rem; color: var(--ink-soft); }
+  .criterion .pts.zeroed { color: var(--danger); }
+  .bar-track { height: 6px; border-radius: 999px; background: var(--surface-alt-2); margin: 8px 0 7px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.4s ease, background 0.3s ease; }
+  .bar-fill.zeroed { background: var(--danger); }
+  .criterion .fb { font-size: 0.8rem; color: var(--ink-faint); line-height: 1.5; }
+  .synth { margin-top: 20px; padding: 18px 20px; }
+  .synth h4 { margin: 0 0 8px; font-size: 0.9rem; }
+  .synth p { margin: 0; font-size: 0.85rem; color: var(--ink-soft); line-height: 1.6; }
+
+  .actions { display: flex; gap: 10px; margin-top: 22px; }
+  .section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
+  .section-title h2 { margin: 0; font-size: 1.55rem; }
+  .footnote { margin-top: 34px; font-size: 0.76rem; color: var(--ink-faint); line-height: 1.6; border-top: 1px solid var(--line); padding-top: 14px; }
+
+  /* ---- dashboard workshop grid ---- */
+  .workshop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+  @media (max-width: 560px) { .workshop-grid { grid-template-columns: 1fr; } }
+  .workshop-card {
+    display: block; text-align: left; padding: 16px 18px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--surface); cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .workshop-card:hover { border-color: var(--accent); }
+  .workshop-card .k { font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+  .workshop-card h4 { margin: 3px 0 3px; font-size: 0.95rem; font-family: "Public Sans", sans-serif; font-weight: 600; }
+  .workshop-card p { margin: 0; font-size: 0.8rem; color: var(--ink-soft); line-height: 1.45; }
+
+  /* ---- section A : lecture / analyse ---- */
+  .lecture-layout { display: grid; grid-template-columns: 190px 1fr; gap: 18px; }
+  .tab .check { color: var(--good); margin-left: 4px; }
+  .exercise { padding: 24px 26px; }
+  .exercise + .exercise { margin-top: 16px; }
+  .exercise .q { font-size: 0.88rem; font-weight: 600; color: var(--ink); margin: 0 0 10px; }
+  .choice-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .choice-btn {
+    border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft);
+  }
+  .choice-btn.is-selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .fb-line { font-size: 0.83rem; line-height: 1.55; margin: 8px 0 0; padding: 8px 11px; border-radius: 7px; }
+  .fb-line.ok { background: var(--good-soft); color: var(--good); }
+  .fb-line.warn { background: var(--warn-soft); color: var(--warn); }
+  .arg-list { display: grid; gap: 10px; margin-top: 6px; }
+  .arg-item { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .arg-item .extract { font-style: italic; font-size: 0.85rem; color: var(--ink); margin: 0 0 9px; }
+  .arg-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .arg-controls select {
+    font-family: inherit; font-size: 0.82rem; border: 1px solid var(--line); border-radius: 6px;
+    padding: 5px 8px; background: var(--surface); color: var(--ink);
+  }
+  .arg-verdict { font-size: 0.76rem; }
+  .arg-verdict.ok { color: var(--good); }
+  .arg-verdict.warn { color: var(--warn); }
+  .chip-row { margin-left: auto; display: flex; gap: 4px; }
+  .chip {
+    font-size: 0.7rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink-faint); cursor: pointer;
+  }
+  .chip.pour.is-on { background: var(--good-soft); border-color: var(--good-line); color: var(--good); }
+  .chip.contre.is-on { background: var(--danger-soft); border-color: var(--danger-line); color: var(--danger); }
+  .chip.nuance.is-on { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent); color: var(--warn); }
+  .score-chip { font-size: 0.78rem; color: var(--ink-soft); margin-left: 12px; }
+  .bank-panel { padding: 18px 20px; margin-bottom: 18px; }
+  .bank-empty { font-size: 0.85rem; color: var(--ink-faint); margin: 0; }
+  .bank-row { display: flex; align-items: baseline; gap: 8px; font-size: 0.85rem; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .bank-row:last-child { border-bottom: none; }
+  .bank-row .extract { font-style: italic; color: var(--ink); }
+  .bank-row .src { font-size: 0.74rem; color: var(--ink-faint); display: block; }
+
+  /* ---- section B : discussion ---- */
+  .chat-log {
+    display: flex; flex-direction: column; gap: 10px; padding: 20px;
+    max-height: 420px; overflow-y: auto;
+  }
+  .bubble-row { display: flex; }
+  .bubble-row.eleve { justify-content: flex-end; }
+  .bubble {
+    max-width: 78%; border-radius: 12px; padding: 10px 14px; font-size: 0.87rem; line-height: 1.5;
+  }
+  .bubble-row.eleve .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 3px; }
+  .bubble-row.ia .bubble { background: var(--surface-alt); color: var(--ink); border-bottom-left-radius: 3px; }
+  .bubble .listen { display: block; margin-top: 5px; font-size: 0.72rem; opacity: 0.65; cursor: pointer; background: none; border: none; padding: 0; color: inherit; font-family: inherit; }
+  .bubble .listen:hover { opacity: 1; }
+  .chat-input-row { display: flex; gap: 8px; margin-top: 12px; align-items: flex-end; }
+  .chat-input-row textarea { flex: 1; }
+  .turn-pill { font-size: 0.72rem; color: var(--ink-faint); }
+</style>
+
+<div class="topbar">
+  <div class="topbar-title">
+    <span class="mark">Cahier d'écriture</span>
+    <span class="sub">Épreuve unique de français · 5<sup>e</sup> secondaire</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <span class="step-pill mono" id="state-pill">non commencé</span>
+    <span class="badge-demo">Aperçu · données fictives</span>
+  </div>
+</div>
+
+<main>
+  <div class="sheet">
+
+    <!-- LOGIN -->
+    <section class="view active" id="view-login">
+      <div class="login-wrap">
+        <div class="card login-card">
+          <h1>Bonjour.</h1>
+          <p class="lead">Connectez-vous pour retrouver votre dossier, votre feuille de notes et votre progression.</p>
+          <form id="login-form">
+            <div class="field">
+              <label class="field-label" for="f-name">Nom complet</label>
+              <input type="text" id="f-name" placeholder="Camille Tremblay" required />
+            </div>
+            <div class="field">
+              <label class="field-label" for="f-email">Courriel</label>
+              <input type="email" id="f-email" placeholder="camille@ecole.qc.ca" required />
+            </div>
+            <div class="field">
+              <label class="field-label" for="f-pass">Mot de passe</label>
+              <input type="password" id="f-pass" placeholder="••••••••" required />
+            </div>
+            <button class="btn btn-primary" type="submit" style="width:100%; justify-content:center; margin-top:6px;">Se connecter</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section class="view" id="view-dashboard">
+      <p class="eyebrow">Tableau de bord</p>
+      <h2 id="dash-hello">Bonjour, Camille</h2>
+      <p class="lead">Ce parcours reproduit les conditions réelles de l'épreuve unique d'écriture&nbsp;: réception du dossier préparatoire, phase autonome de lecture et de prise de notes, puis rédaction chronométrée suivie d'une correction selon la grille ministérielle.</p>
+
+      <ol class="stepper" id="stepper"></ol>
+
+      <div class="actions" id="dash-actions"></div>
+    </section>
+
+    <!-- CORPUS -->
+    <section class="view" id="view-corpus">
+      <div class="corpus-head">
+        <p class="eyebrow">Dossier préparatoire</p>
+        <h2 class="question">Faut-il encadrer légalement le temps d'écran des adolescents&nbsp;?</h2>
+        <p class="lead">Cinq textes courants et littéraires, générés une seule fois et figés pour toute la durée de la préparation.</p>
+      </div>
+      <div class="corpus-layout">
+        <nav class="tabs" id="corpus-tabs"></nav>
+        <article class="card reading" id="corpus-reading"></article>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="go('dashboard')">← Tableau de bord</button>
+        <button class="btn btn-primary" onclick="go('notes')">Ouvrir ma feuille de notes</button>
+      </div>
+    </section>
+
+    <!-- SECTION A : LECTURE / ANALYSE CRITIQUE -->
+    <section class="view" id="view-lecture">
+      <div class="corpus-head" style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+        <div>
+          <p class="eyebrow">Section A — Lire et apprécier</p>
+          <h2 class="question" style="font-size:1.15rem;">Analyse critique du dossier</h2>
+          <p class="lead">Pour chaque texte&nbsp;: dégage la thèse, identifie le point de vue de l'énonciateur, classe les arguments et juge de la crédibilité de la source. Exercice formatif, non noté.</p>
+        </div>
+        <button class="btn btn-ghost" id="bank-toggle" onclick="toggleBankPanel()" style="white-space:nowrap;">Ma banque d'arguments (<span id="bank-count">0</span>)</button>
+      </div>
+
+      <div class="card bank-panel" id="bank-panel" style="display:none;"></div>
+
+      <div class="lecture-layout">
+        <nav class="tabs" id="lecture-tabs"></nav>
+        <div id="lecture-exercise"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="go('dashboard')">← Tableau de bord</button>
+      </div>
+    </section>
+
+    <!-- SECTION B : DISCUSSION PRÉPARATOIRE -->
+    <section class="view" id="view-discussion">
+      <p class="eyebrow">Section B — Communiquer oralement</p>
+      <h2>Discussion préparatoire avec un pair</h2>
+
+      <div id="discussion-start">
+        <p class="lead">Avant de rédiger ta lettre ouverte, l'épreuve prévoit une discussion entre pairs pour approfondir ta réflexion. Énonce la thèse que tu défends pour l'instant&nbsp;: ton interlocuteur (l'IA) va te poser des objections pour t'entraîner à la justifier et à la nuancer.</p>
+        <textarea id="disc-these-input" rows="3" placeholder="Ex. : Je pense que le temps d'écran des adolescents devrait être encadré par la loi parce que…" style="max-width:560px;"></textarea>
+        <div class="actions" style="margin-top:14px;">
+          <button class="btn btn-primary" id="disc-start-btn">Commencer la discussion</button>
+        </div>
+      </div>
+
+      <div id="discussion-chat" style="display:none;">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:14px 0 10px;">
+          <p class="lead" style="margin:0; font-size:0.85rem;">Ta thèse&nbsp;: <span id="disc-these-echo" style="font-style:italic; color:var(--ink);"></span></p>
+          <span class="turn-pill mono" id="disc-turn">Tour 1 / 6</span>
+        </div>
+        <div class="card chat-log" id="chat-log"></div>
+        <div id="disc-synthese" class="card synth" style="display:none; margin-top:14px;">
+          <h4>Synthèse</h4>
+          <p id="disc-synthese-text"></p>
+        </div>
+        <div class="chat-input-row" id="disc-input-row">
+          <textarea id="disc-message" rows="2" placeholder="Réponds à l'objection…"></textarea>
+          <button class="btn btn-ghost" id="disc-mic" title="Dicter ma réponse">🎤</button>
+          <button class="btn btn-primary" id="disc-send">Envoyer</button>
+        </div>
+        <p class="fb-line warn" id="disc-mic-error" style="display:none;"></p>
+        <div class="actions">
+          <button class="btn btn-ghost" id="disc-end">Terminer la discussion et obtenir ma synthèse</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="go('dashboard')">← Tableau de bord</button>
+      </div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="view" id="view-notes">
+      <p class="eyebrow">Jours suivants</p>
+      <h2>Ma feuille de notes</h2>
+      <p class="notes-hint"><strong>Style télégraphique uniquement</strong> — mots-clés, abréviations, tirets, schémas. Aucun texte suivi (introduction, paragraphe rédigé, conclusion) n'est permis&nbsp;: l'évaluateur en vérifie la conformité avant l'épreuve.</p>
+      <textarea id="notes-text" rows="12" spellcheck="false"></textarea>
+      <div class="meta-row">
+        <span><span class="mono" id="notes-wc">0</span> mots</span>
+        <span id="notes-save">Sauvegardé ✓</span>
+      </div>
+      <button class="btn btn-primary" id="notes-validate">Valider ma feuille de notes</button>
+      <div id="notes-verdict"></div>
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="go('dashboard')">← Tableau de bord</button>
+      </div>
+    </section>
+
+    <!-- EXAM MODE CHOICE -->
+    <section class="view" id="view-exam-mode">
+      <p class="eyebrow">Jour de l'évaluation</p>
+      <h2>Choisis ton mode d'écriture</h2>
+      <p class="lead">Le chronomètre officiel est de 3&nbsp;h&nbsp;15 dans les deux cas. Le mode change seulement ce qui se passe si tu quittes la session.</p>
+      <div class="mode-grid">
+        <div class="card mode-card">
+          <h3>Entraînement</h3>
+          <p>Tu peux sortir de l'application à tout moment&nbsp;: le chronomètre se met en pause et reprend exactement là où tu l'as laissé.</p>
+          <button class="btn btn-ghost" onclick="startExamMode('entrainement')">Démarrer en entraînement</button>
+        </div>
+        <div class="card mode-card accent">
+          <h3>Simulation d'examen</h3>
+          <p>Conditions réelles&nbsp;: impossible de sortir de l'épreuve ou de mettre le chronomètre en pause, quoi que tu fasses.</p>
+          <button class="btn btn-primary" onclick="startExamMode('simulation')">Démarrer en simulation</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXAM -->
+    <section class="view" id="view-exam">
+      <div id="exam-lock-banner" class="lock-banner" style="display:none;">🔒 Session verrouillée — impossible de quitter avant la remise de la copie.</div>
+      <div class="exam-head">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h2 style="margin:0;">Rédaction de la lettre ouverte</h2>
+            <span class="mode-badge" id="exam-mode-badge"></span>
+          </div>
+          <p class="lead" style="margin-top:6px;">Environ 500 mots. Défendez une thèse claire en réponse à la question de relance, à l'aide de votre feuille de notes.</p>
+        </div>
+        <div class="timer mono" id="exam-timer">03:15:00</div>
+      </div>
+      <textarea id="exam-text" rows="16" placeholder="Madame, Monsieur,"></textarea>
+      <div class="exam-foot">
+        <span class="mono" style="font-size:0.82rem; color: var(--ink-faint);"><span id="exam-wc">0</span> mots</span>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-ghost" id="exam-quit" style="display:none;">Quitter (le chronomètre s'arrête)</button>
+          <button class="btn btn-danger" id="exam-submit">Remettre ma copie</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXAM PAUSED -->
+    <section class="view" id="view-exam-paused">
+      <p class="eyebrow">Entraînement — en pause</p>
+      <h2>Session en pause</h2>
+      <div class="card paused-card">
+        <p class="lead" style="margin:0;">Ton chronomètre est arrêté.</p>
+        <div class="huge mono" id="paused-remaining">00:00:00</div>
+        <p class="lead" style="margin:0 0 6px;">restantes, dès que tu reviens à ta rédaction.</p>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-primary" onclick="resumeExamMode()">Reprendre l'écriture</button>
+          <button class="btn btn-ghost" onclick="go('dashboard')">Tableau de bord</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="view" id="view-results">
+      <p class="eyebrow">Correction</p>
+      <div class="section-title">
+        <h2>Résultat</h2>
+        <label class="penalty-toggle">
+          <input type="checkbox" id="penalty-check" />
+          simuler 35 erreurs ou plus
+        </label>
+      </div>
+      <div class="score-row">
+        <div class="score-big"><span id="score-total">86</span><span class="of"> / 100</span></div>
+      </div>
+      <p class="lead" style="font-size:0.85rem;" id="score-errors">12 erreurs de langue relevées.</p>
+      <p class="penalty-note" id="penalty-note" style="display:none;">Seuil de 35 erreurs atteint&nbsp;: les critères vocabulaire, syntaxe/ponctuation et orthographe sont ramenés à 0, conformément à la grille ministérielle.</p>
+
+      <div class="card criteria" id="criteria"></div>
+
+      <div class="card synth">
+        <h4>Commentaire général</h4>
+        <p>Thèse claire et maintenue tout au long de la lettre, avec deux arguments bien étayés à partir du dossier. La progression est cohérente, mais quelques répétitions du mot « jeunes » auraient pu être évitées par des substituts. La lettre respecte le registre attendu d'une lettre ouverte adressée au grand public.</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="go('dashboard')">← Tableau de bord</button>
+      </div>
+    </section>
+
+    <p class="footnote">Aperçu d'interface avec données fictives — aucune connexion réelle à Firebase ou à l'API Claude. Dans l'application déployée, le dossier, la validation de la feuille de notes, le chronomètre et la correction sont pris en charge par les Cloud Functions du dépôt (génération, validation et notation via l'API Claude, avec application côté serveur de la règle des 35&nbsp;erreurs).</p>
+  </div>
+</main>
+
+<script>
+  const CORPUS = [
+    {
+      id: "t1", type: "courant", genre: "éditorial",
+      title: "Le temps d'écran, une affaire d'État ?", author: "Marc-Antoine Ferland", pub: "Le Quotidien des idées",
+      body: "Depuis dix ans, le débat revient chaque rentrée scolaire : faut-il légiférer sur le temps d'écran des adolescents ? Les partisans d'un encadrement légal pointent une hausse mesurable des troubles du sommeil et de l'anxiété chez les 12-17 ans. Ils réclament une limite quotidienne inscrite dans la loi, à l'image de ce que certains pays scandinaves ont mis en place dans les écoles.\n\nLeurs opposants rétorquent qu'une loi générale ignore les réalités familiales : un adolescent qui suit des cours de programmation en ligne n'a pas le même rapport à l'écran qu'un autre qui enchaîne les vidéos. Légiférer, disent-ils, reviendrait à traiter tous les usages comme équivalents, alors qu'ils ne le sont pas.",
+      these: "Les avis sont partagés quant à la pertinence d'une loi encadrant le temps d'écran des adolescents.",
+      pointDeVue: "nuance",
+      keywords: ["partag", "avis", "encadr", "loi"],
+      arguments: [
+        { id: "a1", extrait: "une hausse mesurable des troubles du sommeil et de l'anxiété chez les 12-17 ans", type: "fait" },
+        { id: "a2", extrait: "à l'image de ce que certains pays scandinaves ont mis en place dans les écoles", type: "fait" },
+        { id: "a3", extrait: "Légiférer, disent-ils, reviendrait à traiter tous les usages comme équivalents, alors qu'ils ne le sont pas.", type: "opinion" }
+      ]
+    },
+    {
+      id: "t2", type: "litteraire", genre: "extrait de roman",
+      title: "Les heures bleues", author: "Odile Vachon-Simard", pub: "Les heures bleues, roman",
+      body: "Léa ne se souvenait plus du moment où l'écran avait cessé d'être un objet pour devenir une pièce de la maison à part entière. Sa mère éteignait la lumière du salon à onze heures ; la lueur bleue, elle, continuait de veiller sous la porte de sa chambre, fidèle, patiente, presque tendre.\n\nElle se disait parfois qu'elle aimerait qu'on la force à arrêter. Pas par sa mère — par quelque chose de plus grand, d'impersonnel, contre quoi elle n'aurait pas à se battre elle-même. Une loi, peut-être. Quelque chose qui déciderait à sa place, pour une fois.",
+      these: "Léa souhaiterait qu'une contrainte extérieure vienne l'aider à limiter son temps d'écran, faute d'y arriver seule.",
+      pointDeVue: "favorable",
+      keywords: ["contrainte", "force", "loi", "limiter", "aider"],
+      arguments: [
+        { id: "a1", extrait: "Elle se disait parfois qu'elle aimerait qu'on la force à arrêter.", type: "opinion" },
+        { id: "a2", extrait: "la lueur bleue, elle, continuait de veiller sous la porte de sa chambre, fidèle, patiente, presque tendre", type: "opinion" },
+        { id: "a3", extrait: "Une loi, peut-être. Quelque chose qui déciderait à sa place, pour une fois.", type: "opinion" }
+      ]
+    },
+    {
+      id: "t3", type: "courant", genre: "entrevue",
+      title: "« On confond symptôme et cause »", author: "Propos recueillis par Naïma Bouchard", pub: "Revue Éducation Québec",
+      body: "Selon la pédopsychiatre Sophie Létourneau, réduire le débat à une question de minutes devant l'écran fait fausse route. « Le problème n'est presque jamais le temps lui-même, mais ce qu'il remplace : le sommeil, le sport, les amitiés en personne. Une loi qui fixe un chiffre unique pour tout le monde risque de culpabiliser les familles sans régler le fond du problème. »\n\nElle plaide plutôt pour une éducation au numérique dès le primaire, où l'on apprendrait aux jeunes à reconnaître eux-mêmes les usages qui leur font du bien de ceux qui les épuisent.",
+      these: "Le vrai problème n'est pas la durée d'exposition aux écrans, mais ce que cette exposition remplace (sommeil, sport, amitiés).",
+      pointDeVue: "defavorable",
+      keywords: ["remplace", "symptôme", "cause", "éducation", "sommeil"],
+      arguments: [
+        { id: "a1", extrait: "Le problème n'est presque jamais le temps lui-même, mais ce qu'il remplace : le sommeil, le sport, les amitiés en personne.", type: "discours_rapporte" },
+        { id: "a2", extrait: "Une loi qui fixe un chiffre unique pour tout le monde risque de culpabiliser les familles sans régler le fond du problème.", type: "discours_rapporte" },
+        { id: "a3", extrait: "Elle plaide plutôt pour une éducation au numérique dès le primaire", type: "opinion" }
+      ]
+    },
+    {
+      id: "t4", type: "courant", genre: "chronique",
+      title: "Laissons les jeunes décider, un peu", author: "Hugo Painchaud", pub: "Chroniques du samedi",
+      body: "On légifère rarement bien ce qu'on ne comprend qu'à moitié. Les adultes qui réclament une loi sur le temps d'écran ont, pour la plupart, grandi sans smartphone ; ils jugent un monde qu'ils n'ont pas habité au même âge que leurs enfants.\n\nCela ne veut pas dire qu'il ne faut rien faire. Mais entre l'absence totale de cadre et la loi mur-à-mur, il existe une voie : donner aux jeunes eux-mêmes les outils pour fixer leurs limites, et leur faire confiance pour les tenir — quitte à se tromper, comme on se trompe à quinze ans sur à peu près tout.",
+      these: "Plutôt qu'une loi généralisée, il faut donner aux jeunes les outils pour apprendre à s'autoréguler, quitte à ce qu'ils se trompent.",
+      pointDeVue: "defavorable",
+      keywords: ["outils", "autonomie", "confiance", "décider", "jeunes"],
+      arguments: [
+        { id: "a1", extrait: "On légifère rarement bien ce qu'on ne comprend qu'à moitié.", type: "opinion" },
+        { id: "a2", extrait: "Les adultes qui réclament une loi sur le temps d'écran ont, pour la plupart, grandi sans smartphone", type: "fait" },
+        { id: "a3", extrait: "donner aux jeunes eux-mêmes les outils pour fixer leurs limites, et leur faire confiance pour les tenir", type: "opinion" }
+      ]
+    },
+    {
+      id: "t5", type: "litteraire", genre: "poème",
+      title: "Lumière d'appareil", author: "Rosalie Ducharme-Nadeau", pub: "Recueil Basse intensité",
+      body: "la nuit s'est faite écran\nj'y pose mon insomnie comme une main sur une vitre froide\n\nqui décidera pour moi\nl'heure où le monde doit s'éteindre\nsi ce n'est moi\nsi ce n'est personne",
+      these: "Le poème exprime le désir ambivalent de la voix poétique d'être libérée, par une force extérieure, de sa dépendance nocturne à l'écran.",
+      pointDeVue: "nuance",
+      keywords: ["ambival", "libér", "dépendance", "décider", "nocturne"],
+      arguments: [
+        { id: "a1", extrait: "j'y pose mon insomnie comme une main sur une vitre froide", type: "opinion" },
+        { id: "a2", extrait: "qui décidera pour moi", type: "opinion" },
+        { id: "a3", extrait: "si ce n'est moi\nsi ce n'est personne", type: "opinion" }
+      ]
+    }
+  ];
+  const POINT_DE_VUE_LABEL = { favorable: "Favorable", defavorable: "Défavorable", nuance: "Nuancé" };
+  const ARG_TYPE_LABEL = { fait: "Fait vérifiable", opinion: "Opinion", discours_rapporte: "Discours rapporté" };
+
+  const STEPS = [
+    { key: "not_started", label: "1. Réception du dossier préparatoire", desc: "Générez votre dossier de lecture (5 à 8 textes) sur une question à controverse. Il ne sera généré qu'une seule fois." },
+    { key: "corpus_ready", label: "2. Préparation autonome", desc: "À votre rythme : lisez et analysez le dossier (section A), confrontez vos idées en discussion avec l'IA (section B), puis consignez vos idées dans votre feuille de notes." },
+    { key: "notes_validated", label: "3. Jour de l'évaluation", desc: "Une fois votre feuille de notes validée, choisissez un mode (entraînement ou simulation) puis rédigez votre lettre ouverte (3 h 15)." },
+    { key: "exam_submitted", label: "4. Correction", desc: "Votre lettre est soumise. Lancez la correction automatisée selon la grille ministérielle à cinq critères." },
+  ];
+  const ORDER = ["not_started", "corpus_ready", "notes_validated", "exam_in_progress", "exam_submitted", "graded"];
+  const STATE_LABEL = {
+    not_started: "non commencé", corpus_ready: "dossier reçu", notes_validated: "notes validées",
+    exam_in_progress: "rédaction en cours", exam_submitted: "lettre soumise", graded: "corrigé"
+  };
+
+  const EXAM_DURATION_MS = (3 * 60 + 15) * 60 * 1000;
+  let state = { examState: "not_started", name: "Camille" };
+  let activeTab = 0;
+  let examDeadline = null;
+  let examTickHandle = null;
+  let examMode = null;
+  let examRunning = true;
+  let examRemainingMs = EXAM_DURATION_MS;
+
+  function go(view) {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    document.getElementById("view-" + view).classList.add("active");
+    if (view === "dashboard") renderDashboard();
+    if (view === "corpus") renderCorpus();
+    if (view === "lecture") renderLecture();
+    if (view === "discussion") renderDiscussion();
+    if (view === "exam") renderExamView();
+    if (view === "exam-paused") document.getElementById("paused-remaining").textContent = formatHMS(examRemainingMs);
+    if (view === "results") renderResults();
+    document.getElementById("state-pill").textContent = STATE_LABEL[state.examState];
+  }
+
+  document.getElementById("login-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("f-name").value.trim() || "Camille";
+    state.name = name.split(" ")[0];
+    go("dashboard");
+  });
+
+  function renderDashboard() {
+    document.getElementById("dash-hello").textContent = "Bonjour, " + state.name;
+    const rank = ORDER.indexOf(state.examState);
+    const ol = document.getElementById("stepper");
+    ol.innerHTML = "";
+    STEPS.forEach((s, i) => {
+      const stepRank = ORDER.indexOf(s.key);
+      const li = document.createElement("li");
+      let cls = "step ";
+      if (state.examState === s.key || (s.key === "corpus_ready" && state.examState === "corpus_ready")) cls += "is-active";
+      else if (rank > stepRank) cls += "is-done";
+      else cls += "is-idle";
+      li.className = cls;
+      li.innerHTML = `<span class="step-num">${rank > stepRank ? "✓" : i + 1}</span>
+        <div><h3>${s.label}</h3><p>${s.desc}</p></div>`;
+      ol.appendChild(li);
+    });
+
+    const actions = document.getElementById("dash-actions");
+    actions.innerHTML = "";
+    const btn = (label, onclick, cls = "btn-primary") => {
+      const b = document.createElement("button");
+      b.className = "btn " + cls;
+      b.textContent = label;
+      b.onclick = onclick;
+      return b;
+    };
+    if (state.examState === "not_started") {
+      actions.appendChild(btn("Recevoir mon dossier préparatoire", () => {
+        state.examState = "corpus_ready";
+        renderDashboard();
+        document.getElementById("state-pill").textContent = STATE_LABEL[state.examState];
+      }));
+    } else if (state.examState === "corpus_ready") {
+      const grid = document.createElement("div");
+      grid.className = "workshop-grid";
+      grid.style.width = "100%";
+      [
+        ["Dossier préparatoire", "Lire les textes du dossier.", "corpus"],
+        ["Section A — Analyse critique", "Thèse, point de vue, arguments et crédibilité des sources.", "lecture"],
+        ["Section B — Discussion préparatoire", "Défends ta thèse face aux objections d'un pair simulé par l'IA.", "discussion"],
+        ["Ma feuille de notes", "Consigne tes idées en style télégraphique pour le jour de l'épreuve.", "notes"],
+      ].forEach(([title, desc, view]) => {
+        const card = document.createElement("button");
+        card.className = "workshop-card";
+        card.innerHTML = `<h4>${title}</h4><p>${desc}</p>`;
+        card.onclick = () => go(view);
+        grid.appendChild(card);
+      });
+      actions.appendChild(grid);
+    } else if (state.examState === "notes_validated") {
+      actions.appendChild(btn("Choisir mon mode d'écriture", () => go("exam-mode")));
+    } else if (state.examState === "exam_in_progress") {
+      actions.appendChild(btn(examRunning ? "Reprendre la rédaction en cours" : "Reprendre (session en pause)", () => go(examRunning ? "exam" : "exam-paused")));
+    } else if (state.examState === "exam_submitted" || state.examState === "graded") {
+      actions.appendChild(btn(state.examState === "graded" ? "Voir ma correction" : "Faire corriger ma lettre", () => go("results")));
+    }
+  }
+
+  function renderCorpus() {
+    const tabs = document.getElementById("corpus-tabs");
+    tabs.innerHTML = "";
+    CORPUS.forEach((t, i) => {
+      const b = document.createElement("button");
+      b.className = "tab" + (i === activeTab ? " is-active" : "");
+      b.innerHTML = `<span class="n">Texte ${i + 1}</span><span class="t">${t.title}</span>`;
+      b.onclick = () => { activeTab = i; renderCorpus(); };
+      tabs.appendChild(b);
+    });
+    const t = CORPUS[activeTab];
+    document.getElementById("corpus-reading").innerHTML = `
+      <span class="text-type ${t.type === "litteraire" ? "lit" : ""}">${t.type === "litteraire" ? "Texte littéraire" : "Texte courant"} · ${t.genre}</span>
+      <h3>${t.title}</h3>
+      <p class="byline">${t.author} — ${t.pub}</p>
+      <div class="body-text">${t.body}</div>`;
+  }
+
+  /* ---------------- Section A : lecture / analyse critique ---------------- */
+  let lectureTab = 0;
+  const lectureAnswers = {};      // textId -> { these, pointDeVue, args: {argId: type}, credibilite }
+  const lectureResults = {};      // textId -> { theseOk, pointDeVueOk, argVerdicts, score }
+  const argumentBank = [];        // { textId, argId, extrait, stance }
+
+  function jsStr(s) { return String(s).replace(/\\/g, "\\\\").replace(/'/g, "\\'"); }
+
+  function getAnswers(textId) {
+    if (!lectureAnswers[textId]) lectureAnswers[textId] = { these: "", pointDeVue: "", args: {}, credibilite: "" };
+    return lectureAnswers[textId];
+  }
+
+  function renderLecture() {
+    const tabs = document.getElementById("lecture-tabs");
+    tabs.innerHTML = "";
+    CORPUS.forEach((t, i) => {
+      const b = document.createElement("button");
+      b.className = "tab" + (i === lectureTab ? " is-active" : "");
+      b.innerHTML = `<span class="n">Texte ${i + 1}</span><span class="t">${t.title}${lectureResults[t.id] ? ' <span class="check">✓</span>' : ""}</span>`;
+      b.onclick = () => { lectureTab = i; renderLecture(); };
+      tabs.appendChild(b);
+    });
+
+    const t = CORPUS[lectureTab];
+    const a = getAnswers(t.id);
+    const r = lectureResults[t.id];
+    const box = document.getElementById("lecture-exercise");
+
+    const pointDeVueButtons = Object.keys(POINT_DE_VUE_LABEL).map((pv) =>
+      `<button type="button" class="choice-btn ${a.pointDeVue === pv ? "is-selected" : ""}" onclick="setPointDeVue('${t.id}','${pv}')">${POINT_DE_VUE_LABEL[pv]}</button>`
+    ).join("");
+
+    const argRows = t.arguments.map((arg) => {
+      const chosen = a.args[arg.id] || "";
+      const verdict = r ? r.argVerdicts.find((v) => v.id === arg.id) : null;
+      const options = Object.keys(ARG_TYPE_LABEL).map((k) =>
+        `<option value="${k}" ${chosen === k ? "selected" : ""}>${ARG_TYPE_LABEL[k]}</option>`
+      ).join("");
+      const bankEntry = argumentBank.find((e) => e.textId === t.id && e.argId === arg.id);
+      const chips = ["pour", "contre", "nuance"].map((s) =>
+        `<button type="button" class="chip ${s} ${bankEntry && bankEntry.stance === s ? "is-on" : ""}" onclick="toggleBank('${t.id}','${arg.id}','${jsStr(arg.extrait)}','${s}')">${s}</button>`
+      ).join("");
+      return `<li class="arg-item">
+        <p class="extract">« ${arg.extrait} »</p>
+        <div class="arg-controls">
+          <select onchange="setArgType('${t.id}','${arg.id}', this.value)">
+            <option value="" disabled ${chosen ? "" : "selected"}>Type d'argument…</option>
+            ${options}
+          </select>
+          ${verdict ? `<span class="arg-verdict ${verdict.ok ? "ok" : "warn"}">${verdict.ok ? "✓ correct" : "à revoir — c'est plutôt : " + ARG_TYPE_LABEL[verdict.correct]}</span>` : ""}
+          <span class="chip-row">${chips}</span>
+        </div>
+      </li>`;
+    }).join("");
+
+    box.innerHTML = `
+      <article class="card reading" style="padding:20px 24px; margin-bottom:16px;">
+        <span class="text-type ${t.type === "litteraire" ? "lit" : ""}">${t.type === "litteraire" ? "Texte littéraire" : "Texte courant"} · ${t.genre}</span>
+        <h3 style="font-size:1.05rem;">${t.title}</h3>
+        <p class="byline">${t.author} — ${t.pub}</p>
+        <div class="body-text" style="font-size:0.87rem; max-height:180px; overflow-y:auto;">${t.body}</div>
+      </article>
+
+      <div class="card exercise">
+        <p class="q">Quelle est la thèse (ou l'idée principale) de ce texte ?</p>
+        <textarea rows="2" oninput="setThese('${t.id}', this.value)">${a.these}</textarea>
+        ${r ? `<p class="fb-line ${r.theseOk ? "ok" : "warn"}">${r.theseFeedback}</p>` : ""}
+      </div>
+
+      <div class="card exercise">
+        <p class="q">Quel est le point de vue de l'énonciateur ?</p>
+        <div class="choice-row">${pointDeVueButtons}</div>
+        ${r ? `<p class="fb-line ${r.pointDeVueOk ? "ok" : "warn"}">${r.pointDeVueFeedback}</p>` : ""}
+      </div>
+
+      <div class="card exercise">
+        <p class="q">Classe ces extraits et retiens ceux qui te seront utiles</p>
+        <ul class="arg-list">${argRows}</ul>
+      </div>
+
+      <div class="card exercise">
+        <p class="q">Cette source te semble-t-elle crédible ? Pourquoi ?</p>
+        <textarea rows="3" oninput="setCredibilite('${t.id}', this.value)">${a.credibilite}</textarea>
+        ${r ? `<p class="fb-line ok">${r.credibiliteFeedback}</p>` : ""}
+      </div>
+
+      <div style="display:flex; align-items:center;">
+        <button class="btn btn-primary" onclick="verifyAnalysis('${t.id}')">Vérifier mon analyse</button>
+        ${r ? `<span class="score-chip">Score : ${r.score} / 100</span>` : ""}
+      </div>
+    `;
+    renderBankPanel();
+  }
+
+  function setThese(textId, v) { getAnswers(textId).these = v; }
+  function setCredibilite(textId, v) { getAnswers(textId).credibilite = v; }
+  function setPointDeVue(textId, pv) { getAnswers(textId).pointDeVue = pv; renderLecture(); }
+  function setArgType(textId, argId, type) { getAnswers(textId).args[argId] = type; }
+
+  function verifyAnalysis(textId) {
+    const t = CORPUS.find((x) => x.id === textId);
+    const a = getAnswers(textId);
+    if (!a.these.trim() || !a.pointDeVue) return;
+
+    const theseLower = a.these.toLowerCase();
+    const theseOk = t.keywords.some((k) => theseLower.includes(k));
+    const pointDeVueOk = a.pointDeVue === t.pointDeVue;
+
+    const argVerdicts = t.arguments.map((arg) => {
+      const propose = a.args[arg.id] || "opinion";
+      return { id: arg.id, ok: propose === arg.type, correct: arg.type };
+    });
+    const argScore = Math.round((argVerdicts.filter((v) => v.ok).length / argVerdicts.length) * 100);
+    const score = Math.round(((theseOk ? 100 : 50) + (pointDeVueOk ? 100 : 50) + argScore) / 3);
+
+    lectureResults[textId] = {
+      theseOk,
+      theseFeedback: theseOk
+        ? "Ta reformulation rejoint bien l'idée principale du texte."
+        : "Tu tiens un fil, mais reformule en une phrase plus précise ce que défend vraiment l'énonciateur.",
+      pointDeVueOk,
+      pointDeVueFeedback: pointDeVueOk
+        ? "Bonne lecture du positionnement de l'énonciateur."
+        : `À revoir : relis le texte en repérant les indices de ton — le point de vue est plutôt « ${POINT_DE_VUE_LABEL[t.pointDeVue]} ».`,
+      credibiliteFeedback: a.credibilite.trim()
+        ? "Bon réflexe de questionner la source : pense aussi à vérifier si l'énonciateur a une expertise reconnue sur le sujet."
+        : "N'oublie pas de répondre à cette question avant de vérifier à nouveau.",
+      argVerdicts,
+      score,
+    };
+    renderLecture();
+  }
+
+  function toggleBank(textId, argId, extrait, stance) {
+    const i = argumentBank.findIndex((e) => e.textId === textId && e.argId === argId);
+    if (i >= 0 && argumentBank[i].stance === stance) {
+      argumentBank.splice(i, 1);
+    } else if (i >= 0) {
+      argumentBank[i].stance = stance;
+    } else {
+      argumentBank.push({ textId, argId, extrait, stance, textTitle: CORPUS.find((c) => c.id === textId).title });
+    }
+    renderLecture();
+  }
+
+  function toggleBankPanel() {
+    const panel = document.getElementById("bank-panel");
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+    renderBankPanel();
+  }
+
+  function renderBankPanel() {
+    document.getElementById("bank-count").textContent = argumentBank.length;
+    const panel = document.getElementById("bank-panel");
+    if (panel.style.display === "none") return;
+    if (argumentBank.length === 0) {
+      panel.innerHTML = `<p class="bank-empty">Aucun argument retenu pour l'instant. Depuis un texte, marque un extrait « pour », « contre » ou « à nuancer » pour l'ajouter ici.</p>`;
+      return;
+    }
+    panel.innerHTML = argumentBank.map((e) => `
+      <div class="bank-row">
+        <span class="chip ${e.stance} is-on">${e.stance}</span>
+        <span><span class="extract">« ${e.extrait} »</span><span class="src">${e.textTitle}</span></span>
+      </div>
+    `).join("");
+  }
+
+  /* ---------------- Section B : discussion préparatoire ---------------- */
+  const DISCUSSION_MAX_TURNS = 6;
+  const OBJECTIONS = [
+    "D'accord, mais si un ado a besoin de son ordinateur pour l'école le soir, comment une loi générale ferait-elle la différence entre étudier et niaiser en ligne ?",
+    "Le texte 3 rapporte qu'une pédopsychiatre pense que le vrai problème, c'est ce que l'écran remplace — pas sa durée. Ta thèse tient-elle compte de ça ?",
+    "Qui déciderait du chiffre exact — 1 h, 2 h, 3 h ? Et sur quelle base scientifique ?",
+    "Une loi encadrant le temps d'écran, ça se contrôle comment concrètement, chez les parents qui travaillent le soir ?",
+    "Le texte 4 soutient qu'il vaut mieux donner aux jeunes les outils pour s'autoréguler plutôt qu'une règle imposée. Pourquoi ta position serait-elle meilleure ?",
+    "Pour conclure ce tour : quel est, selon toi, l'argument le plus solide de ta thèse — celui que tu veux absolument garder dans ta lettre ?",
+  ];
+  let discussion = null; // { these, messages: [{role, texte}] }
+
+  document.getElementById("disc-start-btn").addEventListener("click", () => {
+    const these = document.getElementById("disc-these-input").value.trim();
+    if (!these) return;
+    discussion = { these, messages: [{ role: "ia", texte: OBJECTIONS[0] }], turn: 1 };
+    document.getElementById("disc-these-echo").textContent = "« " + these + " »";
+    document.getElementById("discussion-start").style.display = "none";
+    document.getElementById("discussion-chat").style.display = "block";
+    renderDiscussion();
+  });
+
+  function renderDiscussion() {
+    if (!discussion) return;
+    const log = document.getElementById("chat-log");
+    log.innerHTML = discussion.messages.map((m, i) => `
+      <div class="bubble-row ${m.role}">
+        <div class="bubble">
+          <span>${m.texte}</span>
+          ${m.role === "ia" ? `<button class="listen" onclick="speakMessage(${i})">🔊 écouter</button>` : ""}
+        </div>
+      </div>
+    `).join("");
+    log.scrollTop = log.scrollHeight;
+    document.getElementById("disc-turn").textContent = `Tour ${Math.min(discussion.turn, DISCUSSION_MAX_TURNS)} / ${DISCUSSION_MAX_TURNS}`;
+    const ended = !!discussion.synthese;
+    document.getElementById("disc-input-row").style.display = ended ? "none" : "flex";
+    document.getElementById("disc-end").style.display = ended ? "none" : "inline-flex";
+    document.getElementById("disc-synthese").style.display = ended ? "block" : "none";
+    if (ended) document.getElementById("disc-synthese-text").textContent = discussion.synthese;
+  }
+
+  function speakMessage(i) {
+    if (!("speechSynthesis" in window) || !discussion) return;
+    const utter = new SpeechSynthesisUtterance(discussion.messages[i].texte);
+    utter.lang = "fr-CA";
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  }
+
+  document.getElementById("disc-send").addEventListener("click", () => {
+    const input = document.getElementById("disc-message");
+    const text = input.value.trim();
+    if (!text || !discussion || discussion.turn > DISCUSSION_MAX_TURNS) return;
+    discussion.messages.push({ role: "eleve", texte: text });
+    input.value = "";
+    const next = OBJECTIONS[Math.min(discussion.turn, OBJECTIONS.length - 1)];
+    discussion.messages.push({ role: "ia", texte: next });
+    discussion.turn += 1;
+    renderDiscussion();
+  });
+
+  document.getElementById("disc-end").addEventListener("click", () => {
+    if (!discussion) return;
+    discussion.synthese = "Ton argument sur le sommeil et la concentration scolaire a bien résisté aux objections : garde-le comme pilier de ta lettre. En revanche, précise comment on appliquerait concrètement une limite (qui décide, comment on la contrôle) pour éviter que ce point reste vague. Pense aussi à répondre, ne serait-ce qu'en une phrase, à l'argument selon lequel c'est ce que remplace l'écran qui compte, pas sa durée — le nuancer renforcera ta thèse plutôt que de l'affaiblir.";
+    renderDiscussion();
+  });
+
+  const micBtn = document.getElementById("disc-mic");
+  const micErrorBox = document.getElementById("disc-mic-error");
+  const MIC_ERROR_MESSAGES = {
+    "not-allowed": "Micro refusé ou bloqué par le navigateur.",
+    "service-not-allowed": "Micro refusé ou bloqué par le navigateur.",
+    "no-speech": "Rien entendu — réessaie en parlant après avoir cliqué sur le micro.",
+    "audio-capture": "Aucun micro détecté sur cet appareil.",
+    "network": "Problème réseau pendant la reconnaissance vocale.",
+  };
+  function showMicError(text) {
+    micErrorBox.textContent = text;
+    micErrorBox.style.display = "block";
+  }
+  const SpeechRecCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecCtor) {
+    micBtn.style.display = "none";
+  } else {
+    let listening = false;
+    let recognition = null;
+    let armTimeout = null;
+    micBtn.addEventListener("click", () => {
+      if (listening) { recognition.stop(); return; }
+      micErrorBox.style.display = "none";
+      recognition = new SpeechRecCtor();
+      recognition.lang = "fr-CA";
+      recognition.interimResults = false;
+      recognition.onresult = (e) => {
+        clearTimeout(armTimeout);
+        const transcript = Array.from(e.results).map((r) => r[0].transcript).join(" ");
+        const input = document.getElementById("disc-message");
+        input.value = input.value ? input.value + " " + transcript : transcript;
+      };
+      recognition.onend = () => { clearTimeout(armTimeout); listening = false; micBtn.classList.remove("btn-danger"); };
+      recognition.onerror = (e) => {
+        clearTimeout(armTimeout);
+        listening = false;
+        micBtn.classList.remove("btn-danger");
+        showMicError(MIC_ERROR_MESSAGES[e && e.error] || "La dictée vocale n'est pas disponible ici. Tu peux écrire ta réponse directement.");
+      };
+      try {
+        recognition.start();
+      } catch {
+        showMicError("La dictée vocale n'est pas disponible ici. Tu peux écrire ta réponse directement.");
+        return;
+      }
+      // Dans un aperçu en bac à sable (iframe), le navigateur peut ne
+      // jamais déclencher onerror si l'invite de permission est bloquée :
+      // on se rabat sur un délai pour éviter un bouton qui semble figé.
+      armTimeout = setTimeout(() => {
+        if (!listening) return;
+        listening = false;
+        micBtn.classList.remove("btn-danger");
+        try { recognition.stop(); } catch {}
+        showMicError("Le micro ne répond pas dans cet aperçu (bac à sable de la page) — fonctionne dans l'application déployée. Tu peux écrire ta réponse directement.");
+      }, 4000);
+      listening = true;
+      micBtn.classList.add("btn-danger");
+    });
+  }
+
+  const notesText = document.getElementById("notes-text");
+  const notesWc = document.getElementById("notes-wc");
+  const notesSave = document.getElementById("notes-save");
+  let saveTimer = null;
+  notesText.value = "thèse : pour un encadrement souple\n- arg1 : sommeil ado ↓ (texte 1, chiffres cités)\n- arg2 : jeunes veulent décider eux-mêmes (texte 4)\nvocab à reprendre : « encadrement », « à cet égard », « force est de constater »";
+  function updateWc() {
+    const words = notesText.value.trim().split(/\s+/).filter(Boolean);
+    notesWc.textContent = notesText.value.trim() ? words.length : 0;
+  }
+  updateWc();
+  notesText.addEventListener("input", () => {
+    updateWc();
+    notesSave.textContent = "Sauvegarde…";
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { notesSave.textContent = "Sauvegardé ✓"; }, 900);
+  });
+
+  document.getElementById("notes-validate").addEventListener("click", () => {
+    const btn = document.getElementById("notes-validate");
+    btn.disabled = true;
+    btn.textContent = "Analyse en cours…";
+    const box = document.getElementById("notes-verdict");
+    box.innerHTML = "";
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = "Valider ma feuille de notes";
+      const sentences = notesText.value.split(/[.!?]/).map(s => s.trim()).filter(Boolean);
+      const longRun = sentences.find(s => s.split(/\s+/).length > 22 && !/[-–—:]/.test(s));
+      if (longRun) {
+        box.innerHTML = `<div class="verdict bad">
+          <h4>Non conforme — un passage ressemble à du texte déjà rédigé</h4>
+          <p>Ce passage forme une phrase suivie et argumentée plutôt qu'une note en style télégraphique. Reformule-le en mots-clés.</p>
+          <div class="excerpt">« ${longRun}. »</div>
+        </div>`;
+      } else {
+        box.innerHTML = `<div class="verdict ok">
+          <h4>Conforme — vous pouvez démarrer l'épreuve</h4>
+          <p>La feuille respecte le style télégraphique : mots-clés, abréviations et références au corpus, sans texte suivi.</p>
+        </div>`;
+        state.examState = "notes_validated";
+        document.getElementById("state-pill").textContent = STATE_LABEL[state.examState];
+      }
+    }, 850);
+  });
+
+  const examText = document.getElementById("exam-text");
+  const examWc = document.getElementById("exam-wc");
+  examText.addEventListener("input", () => {
+    const words = examText.value.trim().split(/\s+/).filter(Boolean);
+    examWc.textContent = examText.value.trim() ? words.length : 0;
+  });
+
+  function formatHMS(ms) {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const h = String(Math.floor(total / 3600)).padStart(2, "0");
+    const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+    const s = String(total % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+
+  function startExamMode(mode) {
+    examMode = mode;
+    examRemainingMs = EXAM_DURATION_MS;
+    examRunning = true;
+    examDeadline = Date.now() + EXAM_DURATION_MS;
+    state.examState = "exam_in_progress";
+    go("exam");
+  }
+
+  function renderExamView() {
+    document.getElementById("exam-mode-badge").textContent =
+      examMode === "simulation" ? "Simulation d'examen" : "Entraînement";
+    document.getElementById("exam-mode-badge").className = "mode-badge " + examMode;
+    document.getElementById("exam-lock-banner").style.display = examMode === "simulation" ? "flex" : "none";
+    document.getElementById("exam-quit").style.display = examMode === "entrainement" ? "inline-flex" : "none";
+    if (!examDeadline) examDeadline = Date.now() + examRemainingMs;
+    tickExam();
+    clearInterval(examTickHandle);
+    examTickHandle = setInterval(tickExam, 1000);
+  }
+
+  function tickExam() {
+    const remaining = Math.max(0, examDeadline - Date.now());
+    const el = document.getElementById("exam-timer");
+    el.textContent = formatHMS(remaining);
+    el.classList.toggle("low", remaining < 15 * 60 * 1000);
+    if (remaining <= 0) {
+      clearInterval(examTickHandle);
+      state.examState = "exam_submitted";
+      go("results");
+    }
+  }
+
+  function pauseExamMode() {
+    if (examMode !== "entrainement" || !examRunning) return;
+    examRemainingMs = Math.max(0, examDeadline - Date.now());
+    examRunning = false;
+    examDeadline = null;
+    clearInterval(examTickHandle);
+  }
+
+  function resumeExamMode() {
+    examRunning = true;
+    examDeadline = Date.now() + examRemainingMs;
+    go("exam");
+  }
+
+  document.getElementById("exam-quit").addEventListener("click", () => {
+    pauseExamMode();
+    go("dashboard");
+  });
+
+  // Simule la mise en pause automatique du mode entraînement lorsque
+  // l'onglet est masqué (changement d'application, autre onglet…).
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && examMode === "entrainement" && examRunning && state.examState === "exam_in_progress") {
+      pauseExamMode();
+      document.getElementById("paused-remaining").textContent = formatHMS(examRemainingMs);
+      go("exam-paused");
+    }
+  });
+
+  window.addEventListener("beforeunload", (e) => {
+    if (examMode === "simulation" && state.examState === "exam_in_progress") {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
+
+  document.getElementById("exam-submit").addEventListener("click", () => {
+    clearInterval(examTickHandle);
+    state.examState = "exam_submitted";
+    go("results");
+  });
+
+  function renderResults() {
+    document.getElementById("penalty-check").checked = false;
+    computeScore();
+  }
+  const BASE = {
+    adaptation: { max: 30, pts: 26, fb: "Thèse claire et maintenue ; deux arguments bien développés à l'aide du corpus, avec une prise en compte explicite du destinataire." },
+    coherence: { max: 20, pts: 16, fb: "Progression logique, connecteurs appropriés ; quelques répétitions du mot « jeunes » auraient mérité des substituts." },
+    vocabulaire: { max: 5, pts: 4, fb: "Vocabulaire globalement juste et précis, avec un ou deux emplois approximatifs." },
+    syntaxe: { max: 25, pts: 21, fb: "Phrases bien construites dans l'ensemble ; quelques virgules manquantes devant des propositions relatives." },
+    orthographe: { max: 20, pts: 19, fb: "Peu d'erreurs d'usage ; une confusion accord participe passé relevée." },
+  };
+  const LABELS = {
+    adaptation: "1. Adaptation à la situation de communication",
+    coherence: "2. Cohérence du texte",
+    vocabulaire: "3. Vocabulaire",
+    syntaxe: "4. Construction des phrases et ponctuation",
+    orthographe: "5. Orthographe",
+  };
+  document.getElementById("penalty-check").addEventListener("change", computeScore);
+
+  function computeScore() {
+    const penalized = document.getElementById("penalty-check").checked;
+    const errors = penalized ? 41 : 12;
+    document.getElementById("score-errors").textContent = errors + " erreurs de langue relevées.";
+    document.getElementById("penalty-note").style.display = penalized ? "block" : "none";
+
+    const box = document.getElementById("criteria");
+    box.innerHTML = "";
+    let total = 0;
+    Object.keys(BASE).forEach((key) => {
+      const c = BASE[key];
+      const zero = penalized && ["vocabulaire", "syntaxe", "orthographe"].includes(key);
+      const pts = zero ? 0 : c.pts;
+      total += pts;
+      const pct = Math.round((pts / c.max) * 100);
+      const div = document.createElement("div");
+      div.className = "criterion";
+      div.innerHTML = `
+        <div class="row">
+          <span class="label">${LABELS[key]}</span>
+          <span class="pts mono ${zero ? "zeroed" : ""}">${pts} / ${c.max}${zero ? "  · pénalité" : ""}</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill ${zero ? "zeroed" : ""}" style="width:${pct}%"></div></div>
+        <p class="fb">${c.fb}</p>`;
+      box.appendChild(div);
+    });
+    document.getElementById("score-total").textContent = total;
+  }
+</script>
