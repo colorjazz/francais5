@@ -1,7 +1,46 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // 1. ÉCOLES et GROUPES : Doivent être lisibles par tous pour que
+    // l'application puisse valider les codes d'accès AVANT la création du compte.
+    match /codes_ecole/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /groupes/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // 2. PROFILS : Il faut être connecté pour les lire/écrire
+    match /profs/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /eleves/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 3. RÉSULTATS : Il faut être connecté
+    match /resultats_eleves/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 4. SYSTÈME (La bannière d'alerte)
+    match /systeme/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == "christopher.plante@gmail.com";
+    }
+
+    // ------------------------------------------------------------------
+    // 5. FRANÇAIS 5 — préparation à l'épreuve unique de français, 5e sec.
+    // Section ajoutée pour cette application ; ne touche à rien ci-dessus.
+    // L'élève arrive via le tableau de bord (nom + code), sans mot de passe
+    // : le client se connecte de façon anonyme (Firebase Auth) pour obtenir
+    // un identifiant propre à sa session, utilisé comme clé des documents.
+    // ------------------------------------------------------------------
 
     function isSignedIn() {
       return request.auth != null;
@@ -11,10 +50,11 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Profile + workflow state (examState, timestamps). The authoritative
-    // transitions (corpus generated, notes validated, exam started/submitted,
-    // graded) are written by Cloud Functions with the Admin SDK, which
-    // bypasses these rules. The client may only touch its own display info.
+    // Profil + état de progression (examState, horodatages). Les
+    // transitions officielles (dossier généré, notes validées, épreuve
+    // démarrée/soumise, corrigée) sont écrites par les Cloud Functions
+    // (Admin SDK), qui contournent ces règles. Le client ne peut modifier
+    // que son propre nom affiché.
     match /users/{uid} {
       allow read: if isOwner(uid);
       allow create: if isOwner(uid)
