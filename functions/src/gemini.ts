@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { defineSecret, defineString } from "firebase-functions/params";
 
-export const geminiApiKey = defineSecret("AQ.Ab8RN6ILvdiOMe0jhjaK1Oox3iITkCZj6V_cQ6T4yBdyi-vsLQ");
+export const geminiApiKey = defineSecret("GEMINI_API_KEY");
 export const geminiModel = defineString("GEMINI_MODEL", {
   default: "gemini-2.0-flash",
 });
