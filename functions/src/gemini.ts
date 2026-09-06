@@ -10,7 +10,13 @@ let client: GoogleGenerativeAI | undefined;
 
 function getClient(): GoogleGenerativeAI {
   if (!client) {
-    client = new GoogleGenerativeAI(geminiApiKey.value());
+    const key = geminiApiKey.value();
+    // Diagnostic temporaire : ne jamais logger la clé elle-même, seulement
+    // sa forme, pour vérifier qu'elle arrive bien jusqu'ici sans l'exposer.
+    console.log(
+      `[diagnostic] GEMINI_API_KEY reçue : longueur=${key.length}, préfixe="${key.slice(0, 4)}"`
+    );
+    client = new GoogleGenerativeAI(key);
   }
   return client;
 }
