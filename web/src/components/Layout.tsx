@@ -43,7 +43,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">
               {profile ? STEP_LABELS[profile.examState] : "…"}
             </span>
-            <span className="text-slate-500">{user.email}</span>
+            <span className="text-slate-500">{profile?.displayName}</span>
             {locked ? (
               <span
                 className="text-slate-300 cursor-not-allowed"

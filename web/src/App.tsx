@@ -2,7 +2,6 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
-import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Corpus from "./pages/Corpus";
 import Lecture from "./pages/Lecture";
@@ -15,7 +14,6 @@ export default function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/connexion" element={<Login />} />
         <Route
           path="/"
           element={

@@ -1,6 +1,6 @@
-import { Navigate } from "react-router-dom";
 import { ReactNode } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import AccessGate from "./AccessGate";
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     return <div className="p-8 text-center text-slate-500">Chargement…</div>;
   }
   if (!user) {
-    return <Navigate to="/connexion" replace />;
+    return <AccessGate />;
   }
   return <>{children}</>;
 }

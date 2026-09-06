@@ -23,10 +23,13 @@ pour la revue de design.
 
 ## Architecture
 
-- **`web/`** — Frontend React + TypeScript + Vite + Tailwind CSS.
-  Authentification, lecture et analyse du dossier, discussion avec l'IA,
-  éditeur de la feuille de notes, module d'écriture chronométré, affichage
-  des résultats.
+- **`web/`** — Frontend React + TypeScript + Vite + Tailwind CSS. Aucun
+  écran de connexion : l'élève arrive depuis le tableau de bord Corrige.moi
+  avec `?nom=...&code=...` en paramètres d'URL (comme pour les autres
+  matières), ce qui déclenche une connexion Firebase anonyme propre à ce
+  code — voir `contexts/AuthContext.tsx`. Le reste : lecture et analyse du
+  dossier, discussion avec l'IA, éditeur de la feuille de notes, module
+  d'écriture chronométré, affichage des résultats.
 - **`functions/`** — Cloud Functions (Firebase, Node/TypeScript) qui
   appellent l'API Gemini (Google AI Studio) pour générer le corpus (et sa
   clé de correction cachée), donner une rétroaction sur l'analyse critique, jouer
@@ -104,7 +107,7 @@ pour la revue de design.
 ### Prérequis
 
 - Node.js 20+
-- Un projet Firebase (Auth par courriel/mot de passe + Firestore activés)
+- Un projet Firebase (Auth anonyme + Firestore activés)
 - Une clé API Gemini (créée sur [aistudio.google.com/apikey](https://aistudio.google.com/apikey))
 - La CLI Firebase (`npm i -g firebase-tools`)
 

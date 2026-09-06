@@ -121,6 +121,8 @@ export interface GradingResult {
 export interface UserProfile {
   examState: ExamState;
   displayName?: string;
+  /** Code d'accès fourni par le tableau de bord, identifiant l'élève sans mot de passe. */
+  accessCode?: string;
   examStartTime?: { seconds: number; nanoseconds: number };
   examDeadline?: { seconds: number; nanoseconds: number };
   examMode?: ExamMode;
