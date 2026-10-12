@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#071a26">
-<meta name="description" content="Quiz de géo : capitales, fleuves, montagnes. Il te rôtit si tu rates, il te glaze si tu enchaînes.">
+<meta name="description" content="Quiz de géo : capitales, cours d'eau, montagnes. Chrono de plus en plus serré, zone rouge pleine de distractions, et un prof qui te rôtit.">
 <title>Géo-Clash</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,7 +42,9 @@
     font-size: 16px;
     line-height: 1.45;
     -webkit-tap-highlight-color: transparent;
+    transition: background-color .6s;
   }
+  body.red-zone { background-color: #1e0f1a; }
   .app {
     max-width: 480px;
     margin: 0 auto;
@@ -52,10 +54,11 @@
     display: flex;
     flex-direction: column;
   }
-  section { display: flex; flex-direction: column; gap: 16px; flex: 1; }
+  section { display: flex; flex-direction: column; gap: 14px; flex: 1; }
   h1, h2, h3 { margin: 0; text-wrap: balance; }
-  button { font: inherit; color: inherit; cursor: pointer; }
-  button:focus-visible { outline: 3px solid var(--sand); outline-offset: 2px; }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--sand); outline-offset: 2px; }
   .label {
     font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--muted);
@@ -70,41 +73,59 @@
     text-shadow: 4px 4px 0 var(--coral);
     margin-top: 8px;
   }
-  .tagline { color: var(--muted); font-size: 1.05rem; margin: 4px 0 0; }
+  .tagline { color: var(--muted); font-size: 1.02rem; margin: 4px 0 0; }
   .tagline b { color: var(--ink); }
-  .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .stat {
     background: var(--sea); border: 1px solid var(--line); border-radius: 14px;
-    padding: 12px 14px; display: flex; flex-direction: column; gap: 2px;
+    padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0;
   }
-  .stat strong { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; font-variant-numeric: tabular-nums; }
+  .stat strong { font-family: var(--font-display); font-size: 1.35rem; font-weight: 400; font-variant-numeric: tabular-nums; }
+  .phases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .phase-chip { border-radius: 10px; padding: 8px; font-size: .8rem; font-weight: 700; background: var(--sea); border: 1px solid var(--line); }
+  .phase-chip b { display: block; font-family: var(--font-display); font-weight: 400; font-size: .85rem; }
+  .phase-chip:nth-child(1) b { color: var(--mint); }
+  .phase-chip:nth-child(2) b { color: var(--sand); }
+  .phase-chip:nth-child(3) b { color: var(--red); }
+  .toggle {
+    display: flex; align-items: center; gap: 12px; text-align: left; width: 100%;
+    background: var(--sea); border: 2px solid var(--sea-3); border-radius: 14px; padding: 12px 14px;
+  }
+  .toggle .txt { flex: 1; min-width: 0; }
+  .toggle .txt b { display: block; }
+  .toggle .txt span { font-size: .85rem; color: var(--muted); }
+  .switch { flex: none; width: 46px; height: 26px; border-radius: 99px; background: var(--sea-3); position: relative; transition: background .2s; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); transition: transform .2s; }
+  .toggle[aria-pressed="true"] { border-color: var(--coral); }
+  .toggle[aria-pressed="true"] .switch { background: var(--coral); }
+  .toggle[aria-pressed="true"] .switch::after { transform: translateX(20px); }
   .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .mode {
     text-align: left; background: var(--sea-2); border: 2px solid var(--sea-3);
-    border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px;
-    transition: transform .12s, border-color .12s;
+    border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px;
+    transition: transform .12s, border-color .12s; min-width: 0;
   }
   .mode:hover { border-color: var(--sand); }
   .mode:active { transform: scale(.97); }
-  .mode .ico { font-size: 1.7rem; line-height: 1; }
-  .mode .name { font-family: var(--font-display); font-size: 1.05rem; color: var(--sand); }
-  .mode .count { font-size: .85rem; color: var(--muted); }
-  .mode.all { grid-column: 1 / -1; background: var(--coral); border-color: var(--coral); color: var(--deep); flex-direction: row; align-items: center; gap: 14px; }
-  .mode.all .name { color: var(--deep); font-size: 1.3rem; }
-  .mode.all .count { color: rgba(7,26,38,.75); font-weight: 700; }
+  .mode .ico { font-size: 1.5rem; line-height: 1; margin-bottom: 4px; }
+  .mode .name { font-family: var(--font-display); font-size: .95rem; color: var(--sand); line-height: 1.15; }
+  .mode .count { font-size: .82rem; color: var(--muted); }
+  .mode.big { grid-column: 1 / -1; background: var(--coral); border-color: var(--coral); color: var(--deep); flex-direction: row; align-items: center; gap: 14px; }
+  .mode.big .ico { font-size: 1.9rem; margin: 0; }
+  .mode.big .name { color: var(--deep); font-size: 1.3rem; }
+  .mode.big .count { color: rgba(7,26,38,.78); font-weight: 700; }
   .ghost {
     background: transparent; border: 2px dashed var(--sea-3); border-radius: 14px;
     padding: 12px; font-weight: 700; color: var(--ink);
   }
   .ghost:hover { border-color: var(--muted); }
-  .trophies { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .trophies { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
   .trophy {
-    aspect-ratio: 1; max-width: 100%; border-radius: 12px; background: var(--sea);
-    border: 1px solid var(--line); display: grid; place-items: center; font-size: 1.5rem;
-    position: relative; padding: 0;
+    aspect-ratio: 1; max-width: 100%; border-radius: 10px; background: var(--sea);
+    border: 1px solid var(--line); display: grid; place-items: center; font-size: 1.35rem; padding: 0;
   }
   .trophy.locked { filter: grayscale(1); opacity: .3; }
-  .trophy-detail { min-height: 2.6em; font-size: .9rem; color: var(--muted); margin: 0; }
+  .trophy-detail { min-height: 2.6em; font-size: .9rem; color: var(--muted); margin: 8px 0 0; }
   .trophy-detail b { color: var(--sand); }
 
   /* ---------- Quiz ---------- */
@@ -114,71 +135,107 @@
     background: var(--sea); display: grid; place-items: center; font-size: 1.1rem;
   }
   .progress { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-  .bar { height: 8px; border-radius: 99px; background: var(--sea-2); overflow: hidden; }
+  .bar { height: 8px; border-radius: 99px; background: var(--sea-2); overflow: hidden; display: flex; }
   .bar span { display: block; height: 100%; width: 0; background: var(--sand); border-radius: 99px; transition: width .3s; }
-  .progress .label { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+  .progress .label { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+  .phase-tag { color: var(--mint); }
+  .phase-tag.p2 { color: var(--sand); }
+  .phase-tag.p3 { color: var(--red); }
   .hud { display: flex; gap: 10px; align-items: stretch; }
   .flame {
     flex: 1; background: var(--sea); border: 1px solid var(--line); border-radius: 14px;
     padding: 8px 12px; display: flex; align-items: center; gap: 10px;
   }
-  .flame .fire { font-size: 1.6rem; transition: transform .25s; display: inline-block; }
-  .flame strong { font-family: var(--font-display); font-weight: 400; font-size: 1.8rem; font-variant-numeric: tabular-nums; line-height: 1; }
+  .flame .fire { font-size: 1.5rem; transition: transform .25s; display: inline-block; }
+  .flame strong { font-family: var(--font-display); font-weight: 400; font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1; }
   .flame.hot { border-color: var(--coral); box-shadow: 0 0 18px rgba(255,107,74,.35) inset; }
   .score { background: var(--sea); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; text-align: right; }
-  .score strong { display: block; font-family: var(--font-display); font-weight: 400; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+  .score strong { display: block; font-family: var(--font-display); font-weight: 400; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
   .mult { color: var(--coral); font-weight: 800; font-size: .8rem; }
 
   .card {
-    background: var(--sand); color: var(--deep); border-radius: 20px; padding: 18px 18px 20px;
-    box-shadow: 0 6px 0 #c9a85e;
-    display: flex; flex-direction: column; gap: 6px;
+    background: var(--sand); color: var(--deep); border-radius: 20px; padding: 16px 18px 14px;
+    box-shadow: 0 6px 0 #c9a85e; display: flex; flex-direction: column; gap: 6px; position: relative;
   }
-  .card .kicker { font-weight: 800; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
-  .card .subject { font-family: var(--font-display); font-size: clamp(1.5rem, 7.5vw, 2.1rem); line-height: 1.1; overflow-wrap: anywhere; }
-  .card .cat { align-self: flex-start; font-size: .75rem; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: var(--deep); color: var(--sand); }
+  .card .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .card .kicker { font-weight: 800; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; opacity: .72; }
+  .card .subject { font-family: var(--font-display); font-size: clamp(1.4rem, 7vw, 2rem); line-height: 1.1; overflow-wrap: anywhere; transition: filter 1.4s ease-out; }
+  .card .subject.long { font-size: clamp(1.05rem, 5vw, 1.35rem); }
+  .card .subject.blurred { filter: blur(9px); transition: none; }
+  .card .cat { font-size: .72rem; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: var(--deep); color: var(--sand); }
+  .card .clock { font-family: var(--font-display); font-size: .95rem; font-variant-numeric: tabular-nums; }
+  .timer { height: 8px; border-radius: 99px; background: rgba(7,26,38,.18); overflow: hidden; margin-top: 4px; }
+  .timer span { display: block; height: 100%; width: 100%; background: var(--deep); border-radius: 99px; }
+  .timer.warn span { background: var(--coral); }
+  .timer.crit span { background: var(--red); }
+  .card.crit { animation: pulse .5s infinite alternate; }
 
-  .options { display: grid; gap: 10px; }
+  .options { display: grid; gap: 8px; }
+  .options.wobble .opt { animation: wobble .35s infinite alternate; }
+  .options.wobble .opt:nth-child(even) { animation-direction: alternate-reverse; }
   .opt {
     text-align: left; background: var(--sea-2); border: 2px solid var(--sea-3); border-radius: 14px;
-    padding: 14px 16px; font-size: 1.05rem; font-weight: 700; display: flex; gap: 12px; align-items: center;
-    transition: transform .1s, background .15s, border-color .15s;
+    padding: 12px 14px; font-size: 1rem; font-weight: 700; display: flex; gap: 12px; align-items: center;
+    transition: transform .1s, background .15s, border-color .15s; min-width: 0;
   }
+  .opt span:last-child { min-width: 0; overflow-wrap: anywhere; }
   .opt .key {
-    flex: none; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
-    background: var(--deep); color: var(--muted); font-size: .8rem; font-weight: 800;
+    flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center;
+    background: var(--deep); color: var(--muted); font-size: .78rem; font-weight: 800;
   }
   .opt:not(:disabled):hover { border-color: var(--sand); }
   .opt:not(:disabled):active { transform: scale(.98); }
   .opt:disabled { cursor: default; }
+  .opt.lure { border-color: var(--mint); box-shadow: 0 0 14px rgba(61,220,151,.45); }
   .opt.dim { opacity: .45; }
-  .opt.good { background: var(--mint); border-color: var(--mint); color: var(--deep); opacity: 1; }
+  .opt.good { background: var(--mint); border-color: var(--mint); color: var(--deep); opacity: 1; box-shadow: none; }
   .opt.good .key { background: rgba(7,26,38,.2); color: var(--deep); }
-  .opt.bad { background: var(--red); border-color: var(--red); color: #fff; opacity: 1; }
+  .opt.bad { background: var(--red); border-color: var(--red); color: #fff; opacity: 1; box-shadow: none; }
   .opt.bad .key { background: rgba(0,0,0,.2); color: #fff; }
 
-  .prof { display: flex; gap: 10px; align-items: flex-start; min-height: 84px; }
+  .typed { display: flex; gap: 8px; }
+  .typed input {
+    flex: 1; min-width: 0; background: var(--sea-2); border: 2px solid var(--sea-3); border-radius: 14px;
+    padding: 14px; font-size: 1.1rem; font-weight: 700;
+  }
+  .typed input.good { border-color: var(--mint); background: rgba(61,220,151,.15); }
+  .typed input.bad { border-color: var(--red); background: rgba(255,77,94,.15); }
+  .typed button { flex: none; border: 0; border-radius: 14px; padding: 0 18px; background: var(--sand); color: var(--deep); font-family: var(--font-display); }
+
+  .prof { display: flex; gap: 10px; align-items: flex-start; min-height: 80px; }
   .avatar {
-    flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--sea-2);
-    border: 2px solid var(--sea-3); display: grid; place-items: center; font-size: 1.5rem;
-    transition: transform .2s;
+    flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--sea-2);
+    border: 2px solid var(--sea-3); display: grid; place-items: center; font-size: 1.4rem;
   }
   .bubble {
     flex: 1; min-width: 0; background: var(--sea); border: 1px solid var(--line); border-radius: 4px 16px 16px 16px;
     padding: 10px 14px; display: flex; flex-direction: column; gap: 4px;
   }
   .bubble .who { font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-  .bubble .say { font-weight: 700; font-size: 1.02rem; }
+  .bubble .say { font-weight: 700; font-size: 1rem; }
   .bubble .tip { font-size: .9rem; color: var(--muted); }
   .bubble .tip b { color: var(--sand); }
   .bubble.glaze { border-color: var(--mint); }
   .bubble.glaze .say { color: var(--mint); }
   .bubble.roast { border-color: var(--red); }
   .bubble.roast .say { color: #ff8a95; }
+  .bubble.sus { border-color: var(--sand); }
+  .bubble.sus .say { color: var(--sand); }
   .next {
     background: var(--ink); color: var(--deep); border: 0; border-radius: 14px; padding: 14px;
     font-family: var(--font-display); font-size: 1.05rem;
   }
+
+  .notif {
+    position: fixed; left: 50%; top: 42%; z-index: 15; transform: translateX(-50%);
+    width: min(340px, calc(100% - 32px)); background: rgba(234,244,248,.97); color: var(--deep);
+    border-radius: 18px; padding: 12px 14px; display: flex; gap: 10px; align-items: center;
+    box-shadow: 0 12px 36px rgba(0,0,0,.5); text-align: left; border: 0; animation: notif .25s ease-out;
+  }
+  .notif .app-ico { flex: none; width: 36px; height: 36px; border-radius: 10px; background: var(--coral); display: grid; place-items: center; font-size: 1.2rem; }
+  .notif .n-body { min-width: 0; }
+  .notif .n-app { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; opacity: .6; }
+  .notif .n-text { font-weight: 700; }
 
   /* ---------- Fin de tour ---------- */
   .verdict { font-family: var(--font-display); font-size: clamp(2rem, 10vw, 2.8rem); line-height: 1; color: var(--sand); text-shadow: 3px 3px 0 var(--coral); }
@@ -189,35 +246,35 @@
   .review-item .q { font-size: .85rem; color: var(--muted); }
   .review-item .a { font-weight: 800; }
   .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .btn {
-    border: 0; border-radius: 14px; padding: 14px; font-weight: 800; font-size: 1rem;
-    background: var(--sea-2); border: 2px solid var(--sea-3);
-  }
+  .btn { border-radius: 14px; padding: 14px; font-weight: 800; font-size: 1rem; background: var(--sea-2); border: 2px solid var(--sea-3); }
   .btn.primary { background: var(--coral); border-color: var(--coral); color: var(--deep); font-family: var(--font-display); font-weight: 400; grid-column: 1 / -1; font-size: 1.1rem; }
   .share-fallback { width: 100%; min-height: 90px; background: var(--sea); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font: inherit; }
 
   /* ---------- Fiche ---------- */
   .sheet { display: flex; flex-direction: column; gap: 18px; }
-  .sheet h3 { font-family: var(--font-display); font-weight: 400; color: var(--sand); font-size: 1.1rem; margin-bottom: 8px; }
+  .sheet h3 { font-family: var(--font-display); font-weight: 400; color: var(--sand); font-size: 1.05rem; margin-bottom: 8px; }
   .sheet-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-  .sheet-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 12px; background: var(--sea); }
+  .sheet-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; padding: 9px 12px; background: var(--sea); }
   .sheet-row + .sheet-row { border-top: 1px solid var(--line); }
-  .sheet-row .k { font-weight: 800; min-width: 0; }
-  .sheet-row .v { color: var(--sand); font-weight: 700; min-width: 0; }
-  .sheet-row .t { grid-column: 1 / -1; font-size: .85rem; color: var(--muted); }
+  .sheet-row .k { font-weight: 800; min-width: 0; overflow-wrap: anywhere; }
+  .sheet-row .v { color: var(--sand); font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+  .sheet-row .t { grid-column: 1 / -1; font-size: .82rem; color: var(--muted); }
+  .sheet-row .t b { color: var(--ink); }
 
-  /* ---------- Overlay rang ---------- */
+  /* ---------- Overlays ---------- */
   .overlay {
-    position: fixed; inset: 0; z-index: 20; background: rgba(7, 26, 38, .88);
+    position: fixed; inset: 0; z-index: 20; background: rgba(7, 26, 38, .9);
     display: grid; place-items: center; padding: 16px;
   }
   .rank-card {
     width: 100%; max-width: 380px; text-align: center; background: var(--sea);
-    border: 3px solid var(--sand); border-radius: 24px; padding: 28px 20px;
+    border: 3px solid var(--sand); border-radius: 24px; padding: 26px 20px;
     display: flex; flex-direction: column; gap: 10px; animation: pop .45s cubic-bezier(.2,1.6,.4,1);
   }
-  .rank-card .badge { font-size: 4.5rem; line-height: 1; }
-  .rank-card .rank-title { font-family: var(--font-display); font-size: 1.6rem; color: var(--sand); line-height: 1.1; }
+  .rank-card.danger { border-color: var(--red); }
+  .rank-card .badge { font-size: 4.2rem; line-height: 1; }
+  .rank-card .rank-title { font-family: var(--font-display); font-size: 1.55rem; color: var(--sand); line-height: 1.1; }
+  .rank-card.danger .rank-title { color: var(--red); }
   .rank-card p { margin: 0; color: var(--muted); }
   .toast {
     position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 12px); transform: translateX(-50%);
@@ -229,12 +286,15 @@
 
   @keyframes pop { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
   @keyframes drop { 0% { transform: translate(-50%, -30px); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
+  @keyframes notif { 0% { transform: translate(-50%, -20px) scale(.9); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
   @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
-  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.45) rotate(-8deg); } 100% { transform: scale(1); } }
+  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.4) rotate(-8deg); } 100% { transform: scale(1); } }
   @keyframes deal { 0% { transform: translateY(10px) scale(.97); opacity: .4; } 100% { transform: none; opacity: 1; } }
-  .deal { animation: deal .25s ease-out; }
+  @keyframes wobble { 0% { transform: translateX(-5px) rotate(-1deg); } 100% { transform: translateX(5px) rotate(1deg); } }
+  @keyframes pulse { 0% { box-shadow: 0 6px 0 #c9a85e; } 100% { box-shadow: 0 6px 0 #c9a85e, 0 0 0 4px var(--red); } }
   .shake { animation: shake .4s; }
   .bump { animation: bump .4s; }
+  .deal { animation: deal .25s ease-out; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
@@ -247,29 +307,37 @@
   <section id="home">
     <div>
       <h1 class="logo">GÉO-<br>CLASH</h1>
-      <p class="tagline">Capitales, fleuves, montagnes. <b>Étudie ou fais-toi rôtir.</b></p>
+      <p class="tagline">Capitales, cours d'eau, montagnes. <b>Étudie ou fais-toi rôtir.</b></p>
     </div>
 
     <div class="stat-row">
-      <div class="stat"><span class="label">Record de série</span><strong id="home-best">0</strong></div>
-      <div class="stat"><span class="label">Trophées</span><strong id="home-trophies">0/10</strong></div>
+      <div class="stat"><span class="label">Record</span><strong id="home-best">0</strong></div>
+      <div class="stat"><span class="label">Maîtrise</span><strong id="home-mastery">0</strong></div>
+      <div class="stat"><span class="label">Trophées</span><strong id="home-trophies">0</strong></div>
     </div>
 
-    <div class="modes">
-      <button class="mode all" data-mode="tout" type="button">
-        <span class="ico">🌍</span>
-        <span><span class="name">Tout le paquet</span><br><span class="count">32 questions · le vrai test</span></span>
-      </button>
-      <button class="mode" data-mode="capitales" type="button"><span class="ico">🏛️</span><span class="name">Capitales</span><span class="count">16 questions</span></button>
-      <button class="mode" data-mode="lieux" type="button"><span class="ico">🏔️</span><span class="name">Fleuves &amp; monts</span><span class="count">16 questions</span></button>
+    <div>
+      <div class="label" style="margin-bottom:6px">Chaque tour devient de plus en plus dur</div>
+      <div class="phases">
+        <div class="phase-chip"><b>Échauffement</b>Pas de chrono</div>
+        <div class="phase-chip"><b>Chrono</b>12 s → 7 s</div>
+        <div class="phase-chip"><b>Zone rouge</b>7 s → 4 s + distractions</div>
+      </div>
     </div>
+
+    <button class="toggle" id="typed-toggle" type="button" aria-pressed="false">
+      <span class="txt"><b>✍️ Mode écrit</b><span>Pas de choix : tu tapes la réponse. Plus de temps, points ×2.</span></span>
+      <span class="switch" aria-hidden="true"></span>
+    </button>
+
+    <div class="modes" id="modes"></div>
 
     <button class="ghost" id="open-sheet" type="button">📖 Voir la fiche avant de te faire humilier</button>
 
     <div>
       <div class="label" style="margin-bottom:8px">Tes trophées</div>
       <div class="trophies" id="trophy-grid"></div>
-      <p class="trophy-detail" id="trophy-detail" style="margin-top:8px">Touche un trophée pour voir comment le débloquer.</p>
+      <p class="trophy-detail" id="trophy-detail">Touche un trophée pour voir comment le débloquer.</p>
     </div>
   </section>
 
@@ -278,7 +346,7 @@
     <div class="topbar">
       <button class="icon-btn" id="quit" type="button" aria-label="Quitter">✕</button>
       <div class="progress">
-        <div class="label"><span id="prog-text">1 / 32</span><span id="err-text">0 erreur</span></div>
+        <div class="label"><span id="prog-text">1 / 30</span><span class="phase-tag" id="phase-tag">Échauffement</span><span id="err-text">0 erreur</span></div>
         <div class="bar"><span id="prog-bar"></span></div>
       </div>
       <button class="icon-btn" id="sound" type="button" aria-label="Son">🔊</button>
@@ -286,7 +354,7 @@
 
     <div class="hud">
       <div class="flame" id="flame">
-        <span class="fire" id="fire">🔥</span>
+        <span class="fire" id="fire">🧊</span>
         <div><div class="label">Série</div><strong id="streak">0</strong></div>
       </div>
       <div class="score">
@@ -297,12 +365,17 @@
     </div>
 
     <div class="card" id="card">
-      <span class="cat" id="q-cat">Capitale</span>
-      <span class="kicker" id="q-kicker">Capitale de</span>
+      <div class="top"><span class="cat" id="q-cat">Capitale</span><span class="clock" id="clock"></span></div>
+      <span class="kicker" id="q-kicker">Quelle est la capitale de…</span>
       <span class="subject" id="q-subject">Australie</span>
+      <div class="timer" id="timer" hidden><span id="timer-bar"></span></div>
     </div>
 
     <div class="options" id="options"></div>
+    <form class="typed" id="typed" hidden autocomplete="off">
+      <input id="typed-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Tape ta réponse…" aria-label="Ta réponse">
+      <button type="submit">OK</button>
+    </form>
 
     <div class="prof">
       <div class="avatar" id="avatar">🧭</div>
@@ -318,7 +391,7 @@
 
   <!-- ================= FIN DE TOUR ================= -->
   <section id="end" hidden>
-    <div class="label">Tour terminé</div>
+    <div class="label" id="end-label">Tour terminé</div>
     <h2 class="verdict" id="verdict">SANS FAUTE</h2>
     <div class="prof">
       <div class="avatar">🧭</div>
@@ -348,62 +421,156 @@
       <button class="icon-btn" id="close-sheet" type="button" aria-label="Retour">←</button>
       <h2 style="font-family:var(--font-display);font-weight:400;font-size:1.3rem">La fiche</h2>
     </div>
-    <p class="tagline" style="margin:0">Tout ce qui peut tomber. Lis-la. Vraiment.</p>
+    <p class="tagline" style="margin:0">Tout ce qui est sur ta feuille d'étude. Les pièges sont expliqués en gris.</p>
     <div class="sheet" id="sheet"></div>
-    <button class="btn primary" id="sheet-play" type="button">J'ai lu, je suis prêt</button>
+    <button class="btn primary" id="sheet-play" type="button">J'ai lu, examen blanc</button>
   </section>
 </div>
 
 <div class="overlay" id="rankup" hidden>
-  <div class="rank-card">
-    <div class="label">Rang débloqué</div>
+  <div class="rank-card" id="rank-card">
+    <div class="label" id="rank-label">Rang débloqué</div>
     <div class="badge" id="rank-badge">🥉</div>
     <div class="rank-title" id="rank-title">Apprenti Explorateur</div>
     <p id="rank-line"></p>
-    <button class="btn primary" id="rank-close" type="button">Continuer la série</button>
+    <button class="btn primary" id="rank-close" type="button">Continuer</button>
   </div>
 </div>
+<button class="notif" id="notif" type="button" hidden>
+  <span class="app-ico" id="notif-ico">📱</span>
+  <span class="n-body"><span class="n-app" id="notif-app">Messages · maintenant</span><br><span class="n-text" id="notif-text"></span></span>
+</button>
 <div class="toast" id="toast" hidden></div>
 <canvas id="fx"></canvas>
 
 <script>
 (() => {
-  // ---------------------------------------------------------------- Données
-  // Matière tirée des notes de cours. "piege" = la mauvaise réponse classique,
-  // toujours glissée dans les choix pour voir si l'élève tombe dedans.
-  const CAPITALES = [
-    { pays: "Costa Rica", cap: "San José", piege: "San Juan", tip: "San Juan, c'est Porto Rico. Le Costa Rica, c'est <b>San José</b>." },
-    { pays: "Allemagne", cap: "Berlin", piege: "Bonn", tip: "Bonn était la capitale de l'Allemagne de l'Ouest. Depuis la réunification : <b>Berlin</b>." },
-    { pays: "Algérie", cap: "Alger", piege: "Oran", tip: "Oran est la 2e ville. La capitale porte presque le nom du pays : <b>Alger</b>." },
-    { pays: "Japon", cap: "Tokyo", piege: "Kyoto", tip: "Kyoto est l'ancienne capitale impériale. Aujourd'hui : <b>Tokyo</b>." },
-    { pays: "Australie", cap: "Canberra", piege: "Sydney", tip: "Le piège le plus célèbre du monde : pas Sydney, <b>Canberra</b>." },
-    { pays: "Corée du Sud", cap: "Séoul", piege: "Pyongyang", tip: "Pyongyang, c'est la Corée du Nord. Mauvaise Corée. Au Sud : <b>Séoul</b>." },
-    { pays: "Brésil", cap: "Brasilia", piege: "Rio de Janeiro", tip: "Rio a été la capitale jusqu'en 1960. Maintenant : <b>Brasilia</b>." },
-    { pays: "Égypte", cap: "Le Caire", piege: "Alexandrie", tip: "Alexandrie est sur la côte. La capitale, sur le Nil : <b>Le Caire</b>." },
-  ];
-  const FLEUVES = [
-    { nom: "Amazone", lieu: "Brésil, Pérou, Colombie", piege: "Argentine, Uruguay", leurre: "Orénoque", tip: "L'Amazone part des Andes au <b>Pérou</b> et traverse le <b>Brésil</b> (et la <b>Colombie</b>)." },
-    { nom: "Nil", lieu: "Égypte, Soudan, Ouganda…", piege: "Maroc, Algérie", leurre: "Niger", tip: "Le Nil descend de l'<b>Ouganda</b>, passe au <b>Soudan</b> et finit en <b>Égypte</b>." },
-    { nom: "Gange", lieu: "Inde, Bangladesh", piege: "Pakistan, Inde", leurre: "Indus", tip: "Celui du Pakistan, c'est l'Indus. Le Gange : <b>Inde, Bangladesh</b>." },
+  // ================================================================ Données
+  // Tirées de la feuille d'étude (chapitre introduction et population).
+  // Format capitales : "Pays|Capitale|Piège|Explication". Le piège est la mauvaise
+  // réponse classique, toujours glissée dans les choix.
+  const CAPS_RAW = {
+    "Amériques": [
+      "Costa Rica|San José|San Juan|San Juan, c'est Porto Rico.",
+      "El Salvador|San Salvador|Salvador|Salvador tout court, c'est une ville du Brésil.",
+      "Guatemala|Guatemala|Antigua|La capitale porte le même nom que le pays. Antigua, c'est l'ancienne capitale.",
+      "Honduras|Tegucigalpa|San Pedro Sula|San Pedro Sula est la 2e ville du pays.",
+      "Nicaragua|Managua|León|León est une ancienne capitale.",
+      "Brésil|Brasilia|Rio de Janeiro|Rio a été la capitale jusqu'en 1960.",
+      "Chili|Santiago|Valparaíso|Le Congrès siège à Valparaíso, mais la capitale c'est Santiago.",
+      "Colombie|Bogotá|Medellín|Medellín est la 2e ville.",
+      "Équateur|Quito|Guayaquil|Guayaquil est la plus grande ville, pas la capitale.",
+      "Guyana|Georgetown|Cayenne|Cayenne, c'est la Guyane française. Le Guyana, c'est Georgetown.",
+      "Paraguay|Asunción|Montevideo|Paraguay → Asunción, Uruguay → Montevideo. Ne les mélange pas.",
+      "Pérou|Lima|Cusco|Cusco était la capitale des Incas.",
+      "Suriname|Paramaribo|Georgetown|Georgetown, c'est le Guyana, le voisin.",
+      "Uruguay|Montevideo|Asunción|Uruguay → Montevideo, Paraguay → Asunción.",
+      "Venezuela|Caracas|Maracaibo|Maracaibo est la 2e ville.",
+    ],
+    "Europe": [
+      "Allemagne|Berlin|Bonn|Bonn était la capitale de l'Allemagne de l'Ouest.",
+      "Belgique|Bruxelles|Anvers|",
+      "Biélorussie|Minsk|Moscou|Moscou, c'est la Russie.",
+      "Espagne|Madrid|Barcelone|",
+      "France|Paris|Lyon|Si tu rates celle-là, on ne peut plus rien pour toi.",
+      "Grèce|Athènes|Thessalonique|",
+      "Irlande|Dublin|Belfast|Belfast est en Irlande du Nord (Royaume-Uni).",
+      "Italie|Rome|Milan|",
+      "Moldavie|Chișinău|Bucarest|Bucarest, c'est la Roumanie, le voisin.",
+      "Norvège|Oslo|Stockholm|Stockholm, c'est la Suède.",
+      "Pologne|Varsovie|Cracovie|Cracovie est l'ancienne capitale.",
+      "Suisse|Berne|Zurich|Zurich et Genève sont plus connues, mais la capitale c'est Berne.",
+      "Ukraine|Kiev|Odessa|",
+    ],
+    "Afrique": [
+      "Algérie|Alger|Oran|Oran est la 2e ville.",
+      "Angola|Luanda|Maputo|Maputo, c'est le Mozambique.",
+      "Bénin|Porto-Novo|Cotonou|Cotonou est la plus grande ville, mais la capitale officielle est Porto-Novo.",
+      "Burkina Faso|Ouagadougou|Bobo-Dioulasso|",
+      "Côte d'Ivoire|Yamoussoukro|Abidjan|Abidjan est la plus grande ville. La capitale officielle est Yamoussoukro.",
+      "Égypte|Le Caire|Alexandrie|",
+      "Ghana|Accra|Kumasi|",
+      "Kenya|Nairobi|Mombasa|",
+      "Libye|Tripoli|Benghazi|",
+      "Mali|Bamako|Tombouctou|",
+      "Maroc|Rabat|Casablanca|Casablanca est la plus grande ville, mais la capitale c'est Rabat.",
+      "Nigeria|Abuja|Lagos|Lagos a été la capitale jusqu'en 1991.",
+      "Rwanda|Kigali|Bujumbura|Bujumbura, c'est au Burundi, le voisin.",
+      "Sénégal|Dakar|Saint-Louis|Saint-Louis est l'ancienne capitale.",
+      "Tanzanie|Dodoma|Dar es Salaam|Dar es Salaam est la plus grande ville. La capitale officielle est Dodoma.",
+    ],
+    "Asie": [
+      "Afghanistan|Kaboul|Kandahar|",
+      "Arabie saoudite|Riyad|Djeddah|",
+      "Arménie|Erevan|Tbilissi|Tbilissi, c'est la Géorgie.",
+      "Chine|Pékin|Shanghai|Shanghai est la plus grande ville. La capitale, c'est Pékin (Beijing).",
+      "Corée du Nord|Pyongyang|Séoul|Nord → Pyongyang, Sud → Séoul.",
+      "Corée du Sud|Séoul|Pyongyang|Sud → Séoul, Nord → Pyongyang.",
+      "Iran|Téhéran|Bagdad|Iran → Téhéran, Irak → Bagdad.",
+      "Irak|Bagdad|Téhéran|Irak → Bagdad, Iran → Téhéran.",
+      "Israël|Jérusalem|Tel-Aviv|Ta feuille dit Jérusalem. Tel-Aviv, c'est le piège.",
+      "Japon|Tokyo|Kyoto|Kyoto est l'ancienne capitale impériale.",
+      "Liban|Beyrouth|Damas|Damas, c'est la Syrie.",
+      "Pakistan|Islamabad|Karachi|Karachi est la plus grande ville.",
+      "Philippines|Manille|Cebu|",
+      "Thaïlande|Bangkok|Phuket|",
+      "Viêt Nam|Hanoï|Hô Chi Minh-Ville|Hô Chi Minh-Ville (ex-Saïgon) est la plus grande ville. La capitale, c'est Hanoï.",
+    ],
+    "Océanie": [
+      "Australie|Canberra|Sydney|Le piège le plus célèbre du monde : pas Sydney, Canberra.",
+      "Nouvelle-Zélande|Wellington|Auckland|Auckland est la plus grande ville.",
+      "Papouasie-Nouvelle-Guinée|Port Moresby|Port-Vila|Port-Vila, c'est le Vanuatu.",
+    ],
+  };
+  // Autres orthographes acceptées en mode écrit (clé = réponse officielle).
+  const ALTS = {
+    "Pékin": ["Beijing"], "Kiev": ["Kyiv"], "Chișinău": ["Kichinev"], "Guatemala": ["Ciudad de Guatemala", "Guatemala City"],
+    "Viêt Nam": ["Vietnam"], "Papouasie-Nouvelle-Guinée": ["PNG", "Papouasie"], "Biélorussie": ["Bélarus"],
+    "Denali (Mont McKinley)": ["Denali", "McKinley", "Mont McKinley"], "Yangtsé": ["Yangzi", "Yang-tsé"],
+    "Elbrouz": ["Elbrus"], "Vinson": ["Massif Vinson", "Mont Vinson"], "Côte d'Ivoire": ["Cote Ivoire"],
+  };
+  // Réponses proches mais fausses, refusées même avec la tolérance de fautes de frappe.
+  const REJECT = { "Guyana": ["Guyane"], "Iran": ["Irak"], "Irak": ["Iran"], "Mali": ["Malawi"], "Mont Kenya": ["Kilimandjaro"] };
+
+  // "Nom|Lieu|Piège (faux lieu)|Leurre (faux nom)|Explication"
+  const COURS_EAU = [
+    "Nil|Égypte, Soudan, Ouganda, Éthiopie…|Maroc, Algérie, Tunisie|Niger|Il traverse l'Afrique de l'Est jusqu'à la Méditerranée, en Égypte.",
+    "Amazone|Brésil, Pérou, Colombie|Argentine, Uruguay, Paraguay|Orénoque|Des Andes (Pérou) jusqu'à l'Atlantique (Brésil).",
+    "Yangtsé|Chine|Japon|Fleuve Jaune|Plus long fleuve d'Asie, entièrement en Chine.",
+    "Mississippi|États-Unis|Canada|Saint-Laurent|Le grand fleuve des États-Unis, jusqu'au golfe du Mexique.",
+    "Danube|Allemagne, Autriche, Hongrie, Serbie, Roumanie, Bulgarie…|France, Espagne, Portugal|Elbe|De l'Allemagne jusqu'à la mer Noire, à travers l'Europe de l'Est.",
+    "Gange|Inde, Bangladesh|Pakistan, Inde|Indus|Celui du Pakistan, c'est l'Indus. Le Gange : Inde, Bangladesh.",
+    "Volga|Russie|Ukraine|Dniepr|Plus long fleuve d'Europe, entièrement en Russie.",
+    "Mékong|Chine, Laos, Thaïlande, Cambodge, Vietnam|Inde, Népal, Bangladesh|Irrawaddy|De la Chine à travers toute l'Asie du Sud-Est.",
+    "Rhin|Suisse, Allemagne, Pays-Bas|Autriche, Hongrie, Serbie|Rhône|Des Alpes suisses jusqu'à la mer du Nord, aux Pays-Bas.",
+    "Congo|RD Congo, République du Congo, Angola|Nigeria, Niger, Mali|Zambèze|Il a donné son nom aux deux Congo.",
   ];
   const MONTAGNES = [
-    { nom: "Everest", lieu: "Népal, Chine (Tibet)", piege: "Inde, Bhoutan", leurre: "Annapurna", tip: "Plus haut sommet du monde (8 849 m), entre le <b>Népal</b> et la <b>Chine (Tibet)</b>." },
-    { nom: "K2", lieu: "Pakistan, Chine", piege: "Népal, Inde", leurre: "Lhotse", tip: "2e plus haut sommet (8 611 m), entre le <b>Pakistan</b> et la <b>Chine</b>." },
-    { nom: "Kilimandjaro", lieu: "Tanzanie", piege: "Kenya", leurre: "Mont Kenya", tip: "On le voit du Kenya, mais il est en <b>Tanzanie</b>. Plus haut sommet d'Afrique." },
-    { nom: "Denali (Mont McKinley)", lieu: "États-Unis (Alaska)", piege: "Canada (Yukon)", leurre: "Mont Logan", tip: "Plus haut sommet d'Amérique du Nord, en <b>Alaska (États-Unis)</b>." },
-    { nom: "Mont Blanc", lieu: "France, Italie", piege: "Suisse, Autriche", leurre: "Cervin", tip: "Sur la frontière entre la <b>France</b> et l'<b>Italie</b>." },
+    "Everest|Népal, Chine (Tibet)|Inde, Bhoutan|Annapurna|Plus haut sommet du monde : 8 849 m.",
+    "K2|Pakistan, Chine|Népal, Inde|Lhotse|2e plus haut sommet du monde : 8 611 m.",
+    "Mont Blanc|France, Italie|Suisse, Autriche|Cervin|Plus haut sommet des Alpes.",
+    "Aconcagua|Argentine|Chili|Chimborazo|Plus haut sommet des Amériques. Il est près du Chili, mais en Argentine.",
+    "Denali (Mont McKinley)|États-Unis (Alaska)|Canada (Yukon)|Mont Logan|Plus haut sommet d'Amérique du Nord.",
+    "Kilimandjaro|Tanzanie|Kenya|Mont Ararat|On le voit du Kenya, mais il est en Tanzanie.",
+    "Elbrouz|Russie|Géorgie|Mont Ararat|Dans le Caucase : plus haut sommet d'Europe.",
+    "Vinson|Antarctique|Groenland|Mont Erebus|Plus haut sommet de l'Antarctique.",
+    "Fitz Roy|Argentine, Chili|Pérou, Bolivie|Cerro Torre|En Patagonie, à la frontière Argentine–Chili.",
+    "Mont Kenya|Kenya|Tanzanie|Kilimandjaro|Le Mont Kenya est au Kenya. Le Kilimandjaro, lui, est en Tanzanie.",
   ];
+  // Paires trop proches pour être mises ensemble dans une même question « quel sommet / quel fleuve ».
+  const CONFLICTS = [["Yangtsé", "Mékong"], ["Aconcagua", "Fitz Roy"]];
 
-  // ---------------------------------------------------------------- Répliques
+  // ================================================================ Répliques
   const GLAZE = [
-    // 1–2
     ["Bon. Même une horloge brisée a raison deux fois par jour.", "Ok ok, t'as ouvert ton cahier.", "Correct. Je suis presque impressionné. Presque.", "Pas mal pour quelqu'un qui dormait en classe."],
-    // 3–5
     ["Tu commences à me faire peur là. 😳", "Ton prof de géo vient de verser une larme de fierté.", "La boussole interne est calibrée. 🧭", "Attention, il est chaud là. 🔥"],
-    // 6–9
     ["Ton cerveau a littéralement un six-pack. 💪", "Même Google Maps te demande son chemin. 🗺️", "Christophe Colomb aurait jamais été perdu avec toi.", "Masterclass. Le globe terrestre t'appartient."],
-    // 10+
     ["T'es le GOAT absolu. 🐐 Point final.", "C'est plus de la géo, c'est de la sorcellerie. ✨", "Einstein pleure de jalousie dans sa tombe. 🧠💥", "Les cartographes du monde entier veulent ton autographe.", "Arrête. Laisse-en pour les autres. 👑"],
+  ];
+  const GLAZE_RED = [
+    "Même avec tout ce chaos, tu gères. Sang-froid de pilote de chasse. 🧊",
+    "La zone rouge, c'est ta maison. 🚨😎",
+    "On te lance des notifs à la tête et tu réponds juste. Monstre.",
   ];
   const ROAST = [
     "Même une brique a un meilleur sens de l'orientation. 🧱",
@@ -429,30 +596,63 @@
     "ENCORE ?! On l'a vue il y a deux minutes. Mémoire de poisson rouge. 🐟",
     "Même question, même erreur. T'es constant au moins.",
   ];
+  const ROAST_TIME = [
+    "Trop lent. Même le Mississippi coule plus vite. 🐢",
+    "Le chrono t'a eu. T'étais où, à Tombouctou ? ⏰",
+    "Temps écoulé. La réponse a pris sa retraite en t'attendant.",
+    "T'as figé comme un pingouin sur le Vinson. 🐧",
+  ];
+  const ROAST_LIAR = [
+    "Tu m'as écouté ?! Règle n° 1 en zone rouge : ne jamais faire confiance au prof. 😈",
+    "J'ai menti et t'as cliqué. Magnifique. 🤡",
+  ];
+  const LIES = [
+    "Psst… c'est la {k}, fais-moi confiance. 😉",
+    "Moi je dis {k}. Mais bon, je dis ça…",
+    "100 % sûr que c'est {k}. Ou pas. 🤭",
+    "Indice : commence par la {k}. 👀",
+  ];
+  const NOTIFS = [
+    ["📱", "Messages", "Maman : t'as fait tes devoirs ???"],
+    ["👻", "Snapchat", "Ton crush t'a envoyé un snap 👀"],
+    ["🔋", "Batterie", "Batterie faible : 2 % restants"],
+    ["💬", "Groupe classe", "quelqu'un a les réponses de l'exam ???"],
+    ["🍕", "Livraison", "Ta pizza est arrivée devant la porte"],
+    ["👵", "Mamie", "Mamie t'a envoyé 14 photos de son chat"],
+    ["⚠️", "Système", "Mise à jour requise. Redémarrer maintenant ?"],
+    ["🎮", "Jeux", "Ton ami t'invite à une partie"],
+    ["📢", "École", "Le prof de géo a publié une nouvelle note"],
+    ["🐦", "Tendances", "Canberra est en tendance… ou c'est Sydney ?"],
+  ];
+  const RAIN = ["🗺️", "🌍", "🧭", "🏔️", "🌊", "📍", "✈️", "🗿", "🐪", "🦘"];
 
   const RANKS = {
-    3:  { badge: "🧳", title: "Touriste réveillé", line: "Trois de suite. Tu sais au moins où tu es." },
-    5:  { badge: "🥉", title: "Apprenti Explorateur", line: "Cinq ! Le multiplicateur passe à ×2." },
-    10: { badge: "🥈", title: "Cartographe Alpha", line: "Dix de suite. Le globe tremble. ×3." },
-    15: { badge: "🥇", title: "Dieu de la Boussole", line: "Quinze. Le Nord, c'est toi maintenant. ×4." },
-    20: { badge: "👑", title: "GÉO-CHAD SUPRÊME", line: "Vingt. Les profs de géo font une réunion d'urgence. ×5." },
-    32: { badge: "🌍", title: "ATLAS HUMAIN", line: "32 sur 32 sans une erreur. Tout le paquet. Légendaire." },
+    3:   { badge: "🧳", title: "Touriste réveillé", line: "Trois de suite. Tu sais au moins où tu es." },
+    5:   { badge: "🥉", title: "Apprenti Explorateur", line: "Cinq ! Le multiplicateur de série passe à ×2." },
+    10:  { badge: "🥈", title: "Cartographe Alpha", line: "Dix de suite. Le globe tremble." },
+    15:  { badge: "🥇", title: "Dieu de la Boussole", line: "Quinze. Le Nord, c'est toi maintenant." },
+    20:  { badge: "👑", title: "GÉO-CHAD SUPRÊME", line: "Vingt. Les profs de géo font une réunion d'urgence." },
+    30:  { badge: "🛰️", title: "Satellite Humain", line: "Trente de suite. Tu vois la Terre depuis l'espace." },
+    50:  { badge: "🌍", title: "ATLAS HUMAIN", line: "Cinquante sans une erreur. T'es devenu la carte." },
+    100: { badge: "🪐", title: "DIVINITÉ GÉOGRAPHIQUE", line: "Cent. Il n'y a plus rien à t'apprendre." },
   };
 
   const TROPHIES = [
-    { id: "premier", icon: "👣", name: "Premier pas", desc: "Avoir une bonne réponse. Le strict minimum." },
     { id: "s5", icon: "🥉", name: "Apprenti Explorateur", desc: "Série de 5 bonnes réponses." },
     { id: "s10", icon: "🥈", name: "Cartographe Alpha", desc: "Série de 10." },
     { id: "s20", icon: "👑", name: "GÉO-CHAD SUPRÊME", desc: "Série de 20." },
-    { id: "atlas", icon: "🌍", name: "Atlas humain", desc: "32 de suite : tout le paquet sans une seule erreur." },
-    { id: "sansfaute", icon: "💯", name: "Sans faute", desc: "Finir un tour (n'importe quel mode) sans aucune erreur." },
+    { id: "s50", icon: "🌍", name: "Atlas humain", desc: "Série de 50 sans une seule erreur." },
+    { id: "sansfaute", icon: "💯", name: "Sans faute", desc: "Finir un tour complet, zone rouge comprise, sans aucune erreur." },
+    { id: "sangfroid", icon: "🧊", name: "Sang-froid", desc: "8 bonnes réponses de suite en zone rouge." },
+    { id: "plume", icon: "✍️", name: "Plume d'or", desc: "10 bonnes réponses de suite en mode écrit." },
     { id: "vengeance", icon: "🔁", name: "Vengeance", desc: "Réussir une question que tu avais ratée plus tôt dans le tour." },
     { id: "eclair", icon: "⚡", name: "Éclair", desc: "5 bonnes réponses de suite en moins de 3 secondes chacune." },
-    { id: "antipiege", icon: "🪤", name: "Anti-piège", desc: "Éviter 10 pièges classiques (Sydney, Rio, Kyoto…)." },
+    { id: "antipiege", icon: "🪤", name: "Anti-piège", desc: "Éviter 25 pièges classiques (Sydney, Abidjan, Lagos…)." },
+    { id: "tourdumonde", icon: "✈️", name: "Tour du monde", desc: "Réussir au moins une fois chacune des questions du jeu." },
     { id: "clown", icon: "🤡", name: "Clown certifié", desc: "3 erreurs de suite. Félicitations… je suppose." },
   ];
 
-  // ---------------------------------------------------------------- Utilitaires
+  // ================================================================ Utilitaires
   const $ = (id) => document.getElementById(id);
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   const shuffle = (arr) => {
@@ -460,105 +660,181 @@
     for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
     return a;
   };
-  const sampleExcept = (pool, exclude, n) => shuffle(pool.filter((x) => !exclude.includes(x))).slice(0, n);
+  const uniq = (arr) => [...new Set(arr.filter(Boolean))];
   const plural = (n, word) => `${n} ${word}${n > 1 ? "s" : ""}`;
+  const lerp = (a, b, t) => a + (b - a) * Math.max(0, Math.min(1, t));
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   const store = {
-    get(key, fallback) { try { const v = localStorage.getItem("geoclash:" + key); return v == null ? fallback : JSON.parse(v); } catch { return fallback; } },
-    set(key, val) { try { localStorage.setItem("geoclash:" + key, JSON.stringify(val)); } catch { /* stockage indisponible : on continue sans */ } },
+    get(key, fallback) { try { const v = localStorage.getItem("geoclash2:" + key); return v == null ? fallback : JSON.parse(v); } catch { return fallback; } },
+    set(key, val) { try { localStorage.setItem("geoclash2:" + key, JSON.stringify(val)); } catch { /* stockage indisponible : on continue sans */ } },
   };
 
-  // ---------------------------------------------------------------- Questions
-  // Chaque fiche donne deux questions : dans un sens et dans l'autre.
-  const allCaps = CAPITALES.map((c) => c.cap);
-  const allPays = CAPITALES.map((c) => c.pays);
-  const allLieux = [...FLEUVES, ...MONTAGNES].map((x) => x.lieu);
-  const allFleuves = FLEUVES.map((f) => f.nom);
-  const allMonts = MONTAGNES.map((m) => m.nom);
-
-  function buildQuestions(mode) {
-    const qs = [];
-    if (mode === "tout" || mode === "capitales") {
-      CAPITALES.forEach((c, i) => {
-        qs.push({
-          key: "cap-d-" + i, cat: "Capitale", kicker: "Quelle est la capitale de…", subject: c.pays,
-          answer: c.cap, tip: c.tip, trap: c.piege,
-          makeOptions: () => [c.cap, c.piege, ...sampleExcept(allCaps, [c.cap], 2)],
-          review: `Capitale de ${c.pays}`,
-        });
-        qs.push({
-          key: "cap-r-" + i, cat: "Capitale", kicker: "Quel pays a pour capitale…", subject: c.cap,
-          answer: c.pays, tip: c.tip,
-          makeOptions: () => [c.pays, ...sampleExcept(allPays, [c.pays], 3)],
-          review: `${c.cap} est la capitale de`,
-        });
-      });
-    }
-    if (mode === "tout" || mode === "lieux") {
-      FLEUVES.forEach((f, i) => {
-        qs.push({
-          key: "fl-d-" + i, cat: "Fleuve", kicker: "Où coule le fleuve…", subject: f.nom,
-          answer: f.lieu, tip: f.tip, trap: f.piege,
-          makeOptions: () => [f.lieu, f.piege, ...sampleExcept(allLieux, [f.lieu], 2)],
-          review: `Où coule le fleuve ${f.nom} ?`,
-        });
-        qs.push({
-          key: "fl-r-" + i, cat: "Fleuve", kicker: "Quel fleuve coule ici ?", subject: f.lieu,
-          answer: f.nom, tip: f.tip, trap: f.leurre,
-          makeOptions: () => [f.nom, f.leurre, ...sampleExcept(allFleuves, [f.nom], 2)],
-          review: `Fleuve : ${f.lieu}`,
-        });
-      });
-      MONTAGNES.forEach((m, i) => {
-        qs.push({
-          key: "mt-d-" + i, cat: "Montagne", kicker: "Où se trouve la montagne…", subject: m.nom,
-          answer: m.lieu, tip: m.tip, trap: m.piege,
-          makeOptions: () => [m.lieu, m.piege, ...sampleExcept(allLieux, [m.lieu], 2)],
-          review: `Où se trouve ${m.nom} ?`,
-        });
-        qs.push({
-          key: "mt-r-" + i, cat: "Montagne", kicker: "Quelle montagne se trouve ici ?", subject: m.lieu,
-          answer: m.nom, tip: m.tip, trap: m.leurre,
-          makeOptions: () => [m.nom, m.leurre, ...sampleExcept(allMonts, [m.nom], 2)],
-          review: `Montagne : ${m.lieu}`,
-        });
-      });
-    }
-    return qs;
+  // Normalisation pour le mode écrit : minuscules, sans accents, sans articles ni « mont », sans ponctuation.
+  function norm(s) {
+    return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/\(.*?\)/g, " ").trim()
+      .replace(/^(l'|l’|le |la |les |mont |massif )/, "")
+      .replace(/[^a-z0-9]/g, "");
+  }
+  function lev(a, b) {
+    const m = a.length, n = b.length, d = Array.from({ length: m + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= n; j++) d[0][j] = j;
+    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[m][n];
+  }
+  // "exact" | "typo" | false
+  function checkTyped(input, q) {
+    const v = norm(input);
+    if (!v) return false;
+    const goods = uniq([q.answer, ...(ALTS[q.answer] || [])].map(norm));
+    if (goods.includes(v)) return "exact";
+    if ((REJECT[q.answer] || []).map(norm).includes(v)) return false;
+    if (q.allAnswers.some((a) => a !== q.answer && norm(a) === v)) return false;
+    const len = goods[0].length, tol = len >= 9 ? 2 : len >= 5 ? 1 : 0;
+    return goods.some((g) => lev(v, g) <= tol) ? "typo" : false;
   }
 
-  // ---------------------------------------------------------------- État
+  // ================================================================ Questions
+  const CAPS = Object.entries(CAPS_RAW).flatMap(([region, rows]) => rows.map((r) => {
+    const [pays, cap, piege, tip] = r.split("|");
+    return { region, pays, cap, piege, tip };
+  }));
+  const regionOf = (c) => (c.region === "Océanie" ? "Asie" : c.region);
+  const LIEUX = [
+    ...COURS_EAU.map((r) => ["Cours d'eau", r]),
+    ...MONTAGNES.map((r) => ["Montagne", r]),
+  ].map(([kind, r]) => { const [nom, lieu, piege, leurre, tip] = r.split("|"); return { kind, nom, lieu, piege, leurre, tip }; });
+  const conflictsWith = (a, b) => CONFLICTS.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+
+  // Remplit une liste de choix : d'abord les incontournables, puis le même groupe, puis le reste.
+  function fill(musts, near, far, n) {
+    return uniq([...musts, ...shuffle(near), ...shuffle(far)]).slice(0, n);
+  }
+
+  function buildAll() {
+    const qs = [];
+    CAPS.forEach((c) => {
+      const same = CAPS.filter((o) => o !== c && regionOf(o) === regionOf(c));
+      const other = CAPS.filter((o) => regionOf(o) !== regionOf(c));
+      const tip = c.tip ? `${esc(c.pays)} → <b>${esc(c.cap)}</b>. ${esc(c.tip)}` : `${esc(c.pays)} → <b>${esc(c.cap)}</b>.`;
+      qs.push({
+        key: "cap:" + c.pays, group: c.region, cat: "Capitale · " + c.region, kicker: "Quelle est la capitale de…", subject: c.pays,
+        answer: c.cap, trap: c.piege, tip, typeable: true, allAnswers: CAPS.map((o) => o.cap),
+        options: (n) => fill([c.cap, c.piege], same.map((o) => o.cap), other.map((o) => o.cap), n),
+        review: `Capitale de ${c.pays}`,
+      });
+      if (norm(c.cap) !== norm(c.pays)) qs.push({
+        key: "pays:" + c.pays, group: c.region, cat: "Capitale · " + c.region, kicker: "C'est la capitale de quel pays ?", subject: c.cap,
+        answer: c.pays, tip, typeable: true, allAnswers: CAPS.map((o) => o.pays),
+        options: (n) => fill([c.pays], same.map((o) => o.pays), other.map((o) => o.pays), n),
+        review: `${c.cap} est la capitale de`,
+      });
+    });
+    LIEUX.forEach((l) => {
+      const same = LIEUX.filter((o) => o !== l && o.kind === l.kind);
+      const tip = `${esc(l.nom)} → <b>${esc(l.lieu)}</b>. ${esc(l.tip)}`;
+      const isRiver = l.kind === "Cours d'eau";
+      qs.push({
+        key: "ou:" + l.nom, group: "Lieux", cat: l.kind, kicker: isRiver ? "Où coule ce cours d'eau ?" : "Où se trouve cette montagne ?", subject: l.nom,
+        answer: l.lieu, trap: l.piege, tip, typeable: false, long: true,
+        options: (n) => fill([l.lieu, l.piege], same.map((o) => o.lieu), [], n),
+        review: isRiver ? `Où coule : ${l.nom}` : `Où se trouve : ${l.nom}`,
+      });
+      const near = same.filter((o) => !conflictsWith(o.nom, l.nom)).map((o) => o.nom);
+      qs.push({
+        key: "nom:" + l.nom, group: "Lieux", cat: l.kind, kicker: isRiver ? "Quel cours d'eau passe ici ?" : "Quelle montagne se trouve ici ?", subject: l.lieu,
+        answer: l.nom, trap: l.leurre, tip, typeable: true, allAnswers: same.map((o) => o.nom),
+        options: (n) => fill([l.nom, l.leurre], near, [], n),
+        review: isRiver ? `Cours d'eau : ${l.lieu}` : `Montagne : ${l.lieu}`,
+      });
+    });
+    return qs;
+  }
+  const ALL = buildAll();
+
+  const MODES = [
+    { id: "examen", ico: "📝", name: "Examen blanc", big: true, desc: "30 questions au hasard, tes points faibles en priorité", pick: () => weighted(ALL, 30) },
+    { id: "Amériques", ico: "🌎", name: "Amériques", pick: () => ALL.filter((q) => q.group === "Amériques") },
+    { id: "Europe", ico: "🏰", name: "Europe", pick: () => ALL.filter((q) => q.group === "Europe") },
+    { id: "Afrique", ico: "🌍", name: "Afrique", pick: () => ALL.filter((q) => q.group === "Afrique") },
+    { id: "Asie", ico: "🌏", name: "Asie & Océanie", pick: () => ALL.filter((q) => q.group === "Asie" || q.group === "Océanie") },
+    { id: "Lieux", ico: "🏔️", name: "Cours d'eau & montagnes", pick: () => ALL.filter((q) => q.group === "Lieux") },
+    { id: "tout", ico: "💀", name: "Tout le paquet", pick: () => ALL.slice() },
+  ];
+
+  // ================================================================ État
   let best = store.get("best", 0);
   let unlocked = new Set(store.get("trophies", []));
   let trapsAvoided = store.get("traps", 0);
   let soundOn = store.get("sound", true);
+  let typedMode = store.get("typed", false);
+  let mastered = new Set(store.get("mastered", []));
+  let misses = store.get("misses", {});
 
-  let run = null;     // état du tour en cours
-  let current = null; // question affichée
+  // Tirage pondéré : une question souvent ratée a plus de chances de tomber.
+  function weighted(pool, n) {
+    const items = pool.map((q) => ({ q, w: (1 + 3 * (misses[q.key] || 0)) * (mastered.has(q.key) ? 1 : 2) }));
+    const out = [];
+    while (out.length < n && items.length) {
+      const total = items.reduce((s, x) => s + x.w, 0);
+      let r = Math.random() * total, i = 0;
+      while ((r -= items[i].w) > 0) i++;
+      out.push(items.splice(i, 1)[0].q);
+    }
+    return out;
+  }
+
+  let run = null;
+  let current = null;
   let advanceTimer = null;
+  let timer = null;      // { limit, start, raf, timeouts }
 
-  function newRun(mode) {
-    const qs = shuffle(buildQuestions(mode));
+  function newRun(modeId) {
+    const mode = MODES.find((m) => m.id === modeId);
+    const qs = shuffle(mode.pick());
     run = {
-      mode, queue: qs, total: qs.length, done: 0,
-      streak: 0, runBest: 0, score: 0, errors: 0,
-      wrongRun: 0, fastRun: 0,
-      missed: new Map(),  // key -> question
-      fixed: new Set(),
-      waiting: false,
+      mode, typed: typedMode, queue: qs, total: qs.length, base: qs.length, done: 0,
+      streak: 0, runBest: 0, score: 0, errors: 0, wrongRun: 0, fastRun: 0, redRun: 0, typedRun: 0,
+      missed: new Map(), fixed: new Set(), retries: {}, phase: 1, announced: 1,
     };
   }
 
-  // ---------------------------------------------------------------- Écrans
+  // Phase : 1 = échauffement (premiers 30 %), 2 = chrono (30–70 %), 3 = zone rouge.
+  function progress() { return run.done / run.base; }
+  function computePhase() { const p = progress(); return p < 0.3 ? 1 : p < 0.7 ? 2 : 3; }
+  function timeLimit(q) {
+    const p = progress();
+    let s = run.phase === 1 ? 0 : run.phase === 2 ? lerp(12, 7, (p - 0.3) / 0.4) : lerp(7, 4, (p - 0.7) / 0.3);
+    if (!s) return 0;
+    if (run.typed && q.typeable) s += 6;
+    if (q.long) s += 2;
+    return s;
+  }
+  const optionCount = () => (run.phase === 1 ? 4 : run.phase === 2 ? 5 : 6);
+
+  // ================================================================ Écrans
   const views = ["home", "quiz", "end", "sheet-view"];
   function show(id) {
     views.forEach((v) => { $(v).hidden = v !== id; });
+    document.body.classList.toggle("red-zone", id === "quiz" && run && run.phase === 3);
     window.scrollTo(0, 0);
   }
 
   function renderHome() {
     $("home-best").textContent = best;
+    $("home-mastery").textContent = `${[...mastered].filter((k) => ALL.some((q) => q.key === k)).length}/${ALL.length}`;
     $("home-trophies").textContent = `${unlocked.size}/${TROPHIES.length}`;
+    $("typed-toggle").setAttribute("aria-pressed", String(typedMode));
+
+    $("modes").innerHTML = MODES.map((m) => {
+      const n = m.id === "examen" ? 30 : m.pick().length;
+      return `<button class="mode${m.big ? " big" : ""}" data-mode="${m.id}" type="button"><span class="ico">${m.ico}</span>` +
+        `<span><span class="name">${m.name}</span><br><span class="count">${m.desc ? m.desc : n + " questions"}</span></span></button>`;
+    }).join("");
+    $("modes").querySelectorAll(".mode").forEach((b) => { b.onclick = () => startRun(b.dataset.mode); });
+
     const grid = $("trophy-grid");
     grid.innerHTML = "";
     TROPHIES.forEach((t) => {
@@ -567,35 +843,34 @@
       b.className = "trophy" + (unlocked.has(t.id) ? "" : " locked");
       b.textContent = t.icon;
       b.setAttribute("aria-label", t.name);
-      b.onclick = () => {
-        $("trophy-detail").innerHTML = `<b>${t.name}</b>${unlocked.has(t.id) ? " ✓" : " 🔒"} — ${t.desc}`;
-      };
+      b.onclick = () => { $("trophy-detail").innerHTML = `<b>${t.name}</b>${unlocked.has(t.id) ? " ✓" : " 🔒"} : ${t.desc}`; };
       grid.appendChild(b);
     });
   }
 
   function renderSheet() {
-    const groups = [
-      ["🏛️ Capitales", CAPITALES.map((c) => [c.pays, c.cap, c.tip])],
-      ["🌊 Fleuves", FLEUVES.map((f) => [f.nom, f.lieu, f.tip])],
-      ["🏔️ Montagnes", MONTAGNES.map((m) => [m.nom, m.lieu, m.tip])],
-    ];
+    const groups = Object.entries(CAPS_RAW).map(([region]) => [
+      "Capitales · " + region,
+      CAPS.filter((c) => c.region === region).map((c) => [c.pays, c.cap, c.piege ? `Piège : ${c.piege}${c.tip ? ". " + c.tip : ""}` : c.tip]),
+    ]);
+    groups.push(["🌊 Cours d'eau", LIEUX.filter((l) => l.kind === "Cours d'eau").map((l) => [l.nom, l.lieu, l.tip])]);
+    groups.push(["🏔️ Montagnes", LIEUX.filter((l) => l.kind === "Montagne").map((l) => [l.nom, l.lieu, l.tip])]);
     $("sheet").innerHTML = groups.map(([title, rows]) => `
       <div>
-        <h3>${title}</h3>
+        <h3>${esc(title)}</h3>
         <div class="sheet-list">
-          ${rows.map(([k, v, t]) => `<div class="sheet-row"><span class="k">${k}</span><span class="v">${v}</span><span class="t">${t}</span></div>`).join("")}
+          ${rows.map(([k, v, t]) => `<div class="sheet-row"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span>${t ? `<span class="t">${esc(t)}</span>` : ""}</div>`).join("")}
         </div>
       </div>`).join("");
   }
 
-  // ---------------------------------------------------------------- Quiz
-  function startRun(mode) {
-    newRun(mode);
+  // ================================================================ Quiz
+  function startRun(modeId) {
+    newRun(modeId);
     show("quiz");
-    setProf("🧭", "neutral", pick([
+    setProf("🧭", "", pick([
       "Prouve que t'as ouvert ton cahier au moins une fois.",
-      "Allez, montre-moi ce que t'as dans le crâne. 🧠",
+      "Ça commence doucement. Profite, ça va pas durer. 😈",
       "Je t'écoute. Et je juge.",
     ]));
     updateHud();
@@ -604,138 +879,281 @@
 
   function nextQuestion() {
     clearTimeout(advanceTimer);
+    stopTimer();
     $("next").hidden = true;
     if (!run.queue.length) return endRun();
+
+    run.phase = Math.max(run.phase, computePhase());
+    if (run.phase > run.announced) { run.announced = run.phase; return announcePhase(run.phase); }
+    document.body.classList.toggle("red-zone", run.phase === 3);
+
     current = run.queue.shift();
+    current.answered = false;
     current.startedAt = performance.now();
+    current.lied = null;
 
     $("q-cat").textContent = current.cat;
     $("q-kicker").textContent = current.kicker;
-    $("q-subject").textContent = current.subject;
+    const subj = $("q-subject");
+    subj.textContent = current.subject;
+    subj.classList.toggle("long", current.subject.length > 26);
     const card = $("card");
-    card.classList.remove("deal"); void card.offsetWidth; card.classList.add("deal");
+    card.classList.remove("deal", "crit"); void card.offsetWidth; card.classList.add("deal");
 
-    const opts = shuffle([...new Set(current.makeOptions())]).slice(0, 4);
-    if (!opts.includes(current.answer)) opts[0] = current.answer;
-    const box = $("options");
-    box.innerHTML = "";
-    opts.forEach((opt, i) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "opt";
-      b.innerHTML = `<span class="key">${"ABCD"[i]}</span><span></span>`;
-      b.lastChild.textContent = opt;
-      b.dataset.value = opt;
-      b.onclick = () => answer(b, opt);
-      box.appendChild(b);
-    });
+    const useTyped = run.typed && current.typeable;
+    $("options").innerHTML = "";
+    $("options").className = "options";
+    $("typed").hidden = !useTyped;
+    $("options").hidden = useTyped;
+    if (useTyped) {
+      const inp = $("typed-input");
+      inp.value = ""; inp.disabled = false; inp.className = "";
+      $("typed").querySelector("button").disabled = false;
+      inp.focus({ preventScroll: true });
+    } else {
+      const opts = shuffle(current.options(optionCount()));
+      if (!opts.includes(current.answer)) opts[0] = current.answer;
+      opts.forEach((opt) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "opt";
+        b.innerHTML = `<span class="key"></span><span></span>`;
+        b.lastChild.textContent = opt;
+        b.dataset.value = opt;
+        b.onclick = () => answer(opt, b);
+        $("options").appendChild(b);
+      });
+      relabel();
+    }
     updateHud();
+    startTimer(timeLimit(current));
+    if (run.phase === 3) scheduleDistractions(useTyped);
   }
 
-  function answer(btn, value) {
-    const buttons = [...$("options").querySelectorAll(".opt")];
-    buttons.forEach((b) => { b.disabled = true; });
-    const ok = value === current.answer;
+  function relabel() {
+    [...$("options").children].forEach((b, i) => { b.firstChild.textContent = "ABCDEF"[i]; });
+  }
+
+  // ---------------------------------------------------------------- Chrono
+  function startTimer(sec) {
+    const wrap = $("timer"), bar = $("timer-bar"), clock = $("clock");
+    timer = { limit: sec * 1000, start: performance.now(), raf: null, timeouts: [] };
+    wrap.hidden = !sec;
+    wrap.classList.remove("warn", "crit");
+    clock.textContent = "";
+    if (!sec) return;
+    let lastTick = Math.ceil(sec);
+    const loop = () => {
+      if (!timer) return;
+      const left = timer.limit - (performance.now() - timer.start);
+      const frac = Math.max(0, left / timer.limit);
+      bar.style.width = frac * 100 + "%";
+      clock.textContent = Math.max(0, left / 1000).toFixed(1) + " s";
+      wrap.classList.toggle("warn", frac < 0.5);
+      wrap.classList.toggle("crit", left < 2000);
+      $("card").classList.toggle("crit", left < 2000);
+      const s = Math.ceil(left / 1000);
+      if (s < lastTick && s <= 3 && s > 0) { lastTick = s; sfx("tick"); }
+      if (left <= 0) { answer(null, null); return; }
+      timer.raf = requestAnimationFrame(loop);
+    };
+    timer.raf = requestAnimationFrame(loop);
+  }
+  function stopTimer() {
+    if (!timer) return;
+    cancelAnimationFrame(timer.raf);
+    timer.timeouts.forEach(clearTimeout);
+    timer = null;
+    $("card").classList.remove("crit");
+    $("options").classList.remove("wobble");
+    $("notif").hidden = true;
+    $("q-subject").classList.remove("blurred");
+  }
+  const later = (ms, fn) => { if (timer) timer.timeouts.push(setTimeout(fn, ms)); };
+
+  // ---------------------------------------------------------------- Distractions (zone rouge)
+  function scheduleDistractions(typed) {
+    const limit = timer && timer.limit ? timer.limit : 5000;
+    const kinds = typed ? ["notif", "blur", "rain", "lie"] : ["notif", "shuffle", "wobble", "blur", "lie", "lure", "rain"];
+    // Plus on approche de la fin, plus il y en a.
+    const n = progress() > 0.88 ? 3 : 2;
+    shuffle(kinds).slice(0, n).forEach((kind) => {
+      const at = kind === "blur" ? 0 : Math.round(limit * (0.15 + Math.random() * 0.4));
+      later(at, () => distract(kind));
+    });
+  }
+  function distract(kind) {
+    if (!current || current.answered) return;
+    const box = [...$("options").children];
+    if (kind === "notif") {
+      const [ico, app, text] = pick(NOTIFS);
+      $("notif-ico").textContent = ico;
+      $("notif-app").textContent = app + " · maintenant";
+      $("notif-text").textContent = text;
+      const el = $("notif");
+      el.hidden = false;
+      el.style.top = 30 + Math.random() * 35 + "%";
+      sfx("notif"); buzz(40);
+      later(1800, () => { el.hidden = true; });
+    } else if (kind === "shuffle" && box.length) {
+      shuffle(box).forEach((b) => $("options").appendChild(b));
+      relabel();
+      setProf("😈", "sus", "Oups, j'ai tout mélangé. 🙃");
+    } else if (kind === "wobble") {
+      $("options").classList.add("wobble");
+      later(1600, () => $("options").classList.remove("wobble"));
+    } else if (kind === "blur") {
+      const s = $("q-subject");
+      s.classList.add("blurred"); void s.offsetWidth;
+      later(60, () => s.classList.remove("blurred"));
+    } else if (kind === "lie") {
+      if (box.length) {
+        const wrong = box.filter((b) => b.dataset.value !== current.answer);
+        const target = Math.random() < 0.75 ? pick(wrong) : pick(box);
+        current.lied = target.dataset.value;
+        setProf("😏", "sus", pick(LIES).replace("{k}", target.firstChild.textContent));
+      } else {
+        const fake = pick(current.allAnswers.filter((a) => a !== current.answer));
+        current.lied = fake;
+        setProf("😏", "sus", `Psst… tape « ${fake} ». Fais-moi confiance. 😉`);
+      }
+    } else if (kind === "lure" && box.length) {
+      const b = pick(box.filter((x) => x.dataset.value !== current.answer));
+      b.classList.add("lure");
+      later(1400, () => b.classList.remove("lure"));
+    } else if (kind === "rain") {
+      const r = $("options").hidden ? $("typed").getBoundingClientRect() : $("options").getBoundingClientRect();
+      for (let i = 0; i < 14; i++) {
+        later(i * 70, () => spawnEmoji(pick(RAIN), Math.random() < 0.5 ? -20 : innerWidth + 20, r.top + Math.random() * Math.max(r.height, 120)));
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- Réponse
+  function answer(value, btn) {
+    if (!current || current.answered) return;
+    current.answered = true;
+    const timedOut = value === null;
     const elapsed = (performance.now() - current.startedAt) / 1000;
+    const wasRed = run.phase === 3;
+    stopTimer();
+
+    const useTyped = run.typed && current.typeable;
+    let verdict = false;
+    if (!timedOut) verdict = useTyped ? checkTyped(value, current) : value === current.answer ? "exact" : false;
+    const ok = !!verdict;
+
+    const buttons = [...$("options").querySelectorAll(".opt")];
+    buttons.forEach((b) => { b.disabled = true; b.classList.remove("lure"); });
+    const inp = $("typed-input");
+    if (useTyped) { inp.disabled = true; $("typed").querySelector("button").disabled = true; inp.className = ok ? "good" : "bad"; }
     run.done++;
 
     if (ok) {
-      btn.classList.add("good");
+      if (btn) btn.classList.add("good");
       buttons.forEach((b) => { if (b !== btn) b.classList.add("dim"); });
       run.streak++;
       run.wrongRun = 0;
       run.runBest = Math.max(run.runBest, run.streak);
-      const mult = multiplier();
-      run.score += 10 * mult + (elapsed < 3 ? 5 : 0);
+      run.score += 10 * run.phase * (useTyped ? 2 : 1) * streakMult() + (elapsed < 3 ? 5 : 0);
       if (run.streak > best) { best = run.streak; store.set("best", best); }
+      mastered.add(current.key); store.set("mastered", [...mastered]);
+      if (misses[current.key]) { misses[current.key] = Math.max(0, misses[current.key] - 1); store.set("misses", misses); }
 
       run.fastRun = elapsed < 3 ? run.fastRun + 1 : 0;
-      if (current.trap && buttons.some((b) => b.dataset.value === current.trap)) {
-        trapsAvoided++; store.set("traps", trapsAvoided);
-      }
+      run.redRun = wasRed ? run.redRun + 1 : 0;
+      run.typedRun = useTyped ? run.typedRun + 1 : 0;
+      if (current.trap && (useTyped || buttons.some((b) => b.dataset.value === current.trap))) { trapsAvoided++; store.set("traps", trapsAvoided); }
 
-      // Trophées
-      unlock("premier");
       if (run.streak >= 5) unlock("s5");
       if (run.streak >= 10) unlock("s10");
       if (run.streak >= 20) unlock("s20");
-      if (run.streak >= 32) unlock("atlas");
+      if (run.streak >= 50) unlock("s50");
       if (run.fastRun >= 5) unlock("eclair");
-      if (trapsAvoided >= 10) unlock("antipiege");
+      if (run.redRun >= 8) unlock("sangfroid");
+      if (run.typedRun >= 10) unlock("plume");
+      if (trapsAvoided >= 25) unlock("antipiege");
+      if (ALL.every((q) => mastered.has(q.key))) unlock("tourdumonde");
       let revenge = false;
-      if (run.missed.has(current.key) && !run.fixed.has(current.key)) {
-        run.fixed.add(current.key); revenge = true; unlock("vengeance");
-      }
+      if (run.missed.has(current.key) && !run.fixed.has(current.key)) { run.fixed.add(current.key); revenge = true; unlock("vengeance"); }
 
       const tier = run.streak >= 10 ? 3 : run.streak >= 6 ? 2 : run.streak >= 3 ? 1 : 0;
       let line = pick(GLAZE[tier]);
       if (revenge) line = "La rédemption ! Tu l'avais ratée, maintenant tu la connais. 🔁";
-      else if (elapsed < 1.5 && run.streak >= 3) line = "Réponse en " + elapsed.toFixed(1) + " s. T'as même pas réfléchi. Respect. ⚡";
-      setProf(tier >= 2 ? "🤩" : "😏", "glaze", line);
+      else if (verdict === "typo") line = "Orthographe douteuse, mais je te l'accorde. Cette fois. ✍️";
+      else if (current.lied && current.lied !== current.answer) line = "T'as même pas écouté mes mensonges. Respect. 😤";
+      else if (wasRed && Math.random() < 0.5) line = pick(GLAZE_RED);
+      else if (elapsed < 1.5 && run.streak >= 3) line = `Réponse en ${elapsed.toFixed(1)} s. T'as même pas réfléchi. ⚡`;
+      setProf(tier >= 2 ? "🤩" : "😏", "glaze", line, verdict === "typo" ? `Ça s'écrit <b>${esc(current.answer)}</b>.` : "");
       sfx("good");
-      burst(btn, tier >= 2 ? 40 : 18);
+      burst(btn || inp, tier >= 2 ? 40 : 18);
 
       updateHud();
-      if (RANKS[run.streak]) {
-        showRank(RANKS[run.streak]);
-      } else {
-        advanceTimer = setTimeout(nextQuestion, 1300);
-        $("next").hidden = false;
-      }
+      if (RANKS[run.streak]) showRank(RANKS[run.streak]);
+      else { advanceTimer = setTimeout(nextQuestion, verdict === "typo" ? 2200 : 1200); $("next").hidden = false; }
     } else {
-      btn.classList.add("bad");
+      if (btn) btn.classList.add("bad");
       buttons.forEach((b) => {
         if (b.dataset.value === current.answer) b.classList.add("good");
         else if (b !== btn) b.classList.add("dim");
       });
       const lost = run.streak;
       const repeat = run.missed.has(current.key);
-      run.streak = 0;
-      run.fastRun = 0;
-      run.errors++;
-      run.wrongRun++;
+      run.streak = 0; run.fastRun = 0; run.redRun = 0; run.typedRun = 0;
+      run.errors++; run.wrongRun++;
       run.missed.set(current.key, current);
+      misses[current.key] = (misses[current.key] || 0) + 1; store.set("misses", misses);
       if (run.wrongRun >= 3) unlock("clown");
 
-      // La question ratée revient un peu plus loin dans le tour.
-      run.queue.splice(Math.min(3, run.queue.length), 0, current);
-      run.total++;
+      // La question ratée revient un peu plus loin dans le tour (deux fois au plus, pour que le tour finisse).
+      run.retries[current.key] = (run.retries[current.key] || 0) + 1;
+      if (run.retries[current.key] <= 2) {
+        run.queue.splice(Math.min(3, run.queue.length), 0, current);
+        run.total++;
+      }
 
+      const same = (a, b) => a != null && b != null && norm(a) === norm(b);
       let line;
-      if (repeat) line = pick(ROAST_REPEAT);
+      if (timedOut) line = pick(ROAST_TIME);
+      else if (current.lied && same(value, current.lied)) line = pick(ROAST_LIAR);
+      else if (repeat) line = pick(ROAST_REPEAT);
       else if (lost >= 5) line = pick(ROAST_STREAK).replace("{n}", lost);
-      else if (value === current.trap) line = pick(ROAST_TRAP);
+      else if (current.trap && same(value, current.trap)) line = pick(ROAST_TRAP);
       else if (run.wrongRun >= 3) line = "Trois erreurs de suite. Je commence à croire que tu le fais exprès. 🤡";
       else line = pick(ROAST);
-      setProf(pick(["😤", "🤦", "💀", "🙄"]), "roast", line, `Bonne réponse : <b>${escapeHtml(current.answer)}</b>. ${current.tip}`);
+      setProf(pick(["😤", "🤦", "💀", "🙄"]), "roast", line, `Bonne réponse : <b>${esc(current.answer)}</b>. ${current.tip}`);
       sfx("bad");
       buzz([60, 40, 90]);
       const app = document.querySelector(".app");
       app.classList.remove("shake"); void app.offsetWidth; app.classList.add("shake");
 
       updateHud();
-      $("next").hidden = false; // pas d'avance automatique : il faut lire la correction
+      $("next").hidden = false;
+      $("next").focus({ preventScroll: true });
     }
   }
 
-  function multiplier() { return 1 + Math.floor(run.streak / 5); }
+  const streakMult = () => Math.min(5, 1 + Math.floor((run ? run.streak : 0) / 5));
 
   function updateHud() {
     $("streak").textContent = run.streak;
     $("score").textContent = run.score;
-    $("mult").textContent = "×" + multiplier();
+    const typedNow = run.typed && current && current.typeable;
+    $("mult").textContent = `×${streakMult()} série · ×${run.phase * (typedNow ? 2 : 1)} phase`;
     $("flame").classList.toggle("hot", run.streak >= 5);
-    $("fire").style.transform = `scale(${Math.min(1 + run.streak * 0.05, 1.8)})`;
+    $("fire").style.transform = `scale(${Math.min(1 + run.streak * 0.04, 1.7)})`;
     $("fire").textContent = run.streak === 0 ? "🧊" : run.streak >= 10 ? "☄️" : "🔥";
-    const num = Math.min(run.done + 1, run.total);
-    $("prog-text").textContent = `${num} / ${run.total}`;
+    $("prog-text").textContent = `${Math.min(run.done + 1, run.total)} / ${run.total}`;
     $("err-text").textContent = plural(run.errors, "erreur");
     $("prog-bar").style.width = (run.done / run.total) * 100 + "%";
+    const tag = $("phase-tag");
+    tag.textContent = ["", "Échauffement", "⏱️ Chrono", "🚨 Zone rouge"][run.phase];
+    tag.className = "phase-tag p" + run.phase;
   }
 
   function setProf(face, mood, say, tip) {
     $("avatar").textContent = face;
-    $("bubble").className = "bubble" + (mood === "neutral" ? "" : " " + mood);
+    $("bubble").className = "bubble" + (mood ? " " + mood : "");
     $("say").textContent = say;
     $("tip").hidden = !tip;
     $("tip").innerHTML = tip || "";
@@ -743,18 +1161,33 @@
     av.classList.remove("bump"); void av.offsetWidth; av.classList.add("bump");
   }
 
+  function overlay({ label, badge, title, line, button, danger }) {
+    $("rank-label").textContent = label;
+    $("rank-badge").textContent = badge;
+    $("rank-title").textContent = title;
+    $("rank-line").textContent = line;
+    $("rank-close").textContent = button;
+    $("rank-card").classList.toggle("danger", !!danger);
+    $("rankup").hidden = false;
+    $("rank-close").focus();
+  }
   function showRank(r) {
     clearTimeout(advanceTimer);
-    $("rank-badge").textContent = r.badge;
-    $("rank-title").textContent = r.title;
-    $("rank-line").textContent = r.line;
-    $("rankup").hidden = false;
+    overlay({ label: "Rang débloqué", badge: r.badge, title: r.title, line: r.line, button: "Continuer la série" });
     sfx("rank");
     confetti(140);
-    $("rank-close").focus();
+  }
+  function announcePhase(p) {
+    setProf("😈", "sus", p === 2 ? "Fini de rigoler." : "Bonne chance. Tu vas en avoir besoin.");
+    if (p === 2) overlay({ label: "Phase 2", badge: "⏱️", title: "LE CHRONO S'ACTIVE", line: "12 secondes par question, puis de moins en moins. Et maintenant il y a 5 choix au lieu de 4.", button: "Je suis prêt" });
+    else overlay({ label: "Phase finale", badge: "🚨", title: "ZONE ROUGE", line: "De 7 à 4 secondes, 6 choix, et des distractions : notifications, choix qui bougent, flou… et le prof va te mentir.", button: "Amène-toi", danger: true });
+    document.body.classList.toggle("red-zone", p === 3);
+    sfx(p === 3 ? "alarm" : "rank");
   }
 
   function endRun() {
+    stopTimer();
+    document.body.classList.remove("red-zone");
     const answered = run.done;
     const correct = answered - run.errors;
     const acc = answered ? Math.round((correct / answered) * 100) : 0;
@@ -762,11 +1195,12 @@
     if (perfect) unlock("sansfaute");
 
     let verdict, say;
-    if (perfect) { verdict = "SANS FAUTE 💯"; say = "Zéro erreur. J'ai plus rien à dire. Tu peux aller à l'exam les yeux fermés. 🐐"; }
-    else if (acc >= 85) { verdict = "PRESQUE !"; say = "Solide. Mais « presque », ça compte pas à l'exam. Refais-le sans faute."; }
+    if (perfect) { verdict = "SANS FAUTE 💯"; say = "Zéro erreur, zone rouge comprise. J'ai plus rien à dire. Va à l'exam les yeux fermés. 🐐"; }
+    else if (acc >= 85) { verdict = "PRESQUE !"; say = "Solide. Mais « presque », ça ne compte pas à l'exam. Refais-le sans faute."; }
     else if (acc >= 60) { verdict = "MOUAIS."; say = "Correct, sans plus. Relis la fiche et reviens quand t'es sérieux."; }
-    else { verdict = "CATASTROPHE"; say = "J'ai vu des pigeons voyageurs plus calés que toi. Fiche. Maintenant. 📖"; }
+    else { verdict = "CATASTROPHE"; say = "J'ai vu des pigeons voyageurs plus calés que toi. La fiche. Maintenant. 📖"; }
 
+    $("end-label").textContent = `${run.mode.name}${run.typed ? " · mode écrit" : ""}`;
     $("verdict").textContent = verdict;
     $("verdict").className = "verdict" + (acc < 60 ? " fail" : "");
     $("end-bubble").className = "bubble " + (acc >= 85 ? "glaze" : "roast");
@@ -779,7 +1213,7 @@
     const missed = [...run.missed.values()];
     $("review-wrap").hidden = !missed.length;
     $("review").innerHTML = missed.map((q) =>
-      `<div class="review-item"><div class="q">${escapeHtml(q.review)}</div><div class="a">${escapeHtml(q.answer)}</div></div>`).join("");
+      `<div class="review-item"><div class="q">${esc(q.review)}</div><div class="a">${esc(q.answer)}</div></div>`).join("");
     $("share-text").hidden = true;
     $("share").textContent = "📤 Défier un ami";
 
@@ -787,7 +1221,7 @@
     if (perfect) { confetti(220); sfx("rank"); } else if (acc >= 85) confetti(60);
   }
 
-  // ---------------------------------------------------------------- Trophées
+  // ================================================================ Trophées
   function unlock(id) {
     if (unlocked.has(id)) return;
     unlocked.add(id);
@@ -805,12 +1239,11 @@
     toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
   }
 
-  // ---------------------------------------------------------------- Partage
+  // ================================================================ Partage
   async function share() {
     const answered = run.done;
     const acc = answered ? Math.round(((answered - run.errors) / answered) * 100) : 0;
-    const mode = { tout: "tout le paquet", capitales: "capitales", lieux: "fleuves & montagnes" }[run.mode];
-    let text = `🌍 GÉO-CLASH (${mode})\n${run.errors === 0 ? "💯 SANS FAUTE" : acc + " % de réussite"} · ${run.score} pts · série max 🔥${run.runBest}\nRecord perso : ${best}. Fais mieux si t'es capable. 😏`;
+    let text = `🌍 GÉO-CLASH · ${run.mode.name}${run.typed ? " (mode écrit ✍️)" : ""}\n${run.errors === 0 ? "💯 SANS FAUTE, zone rouge comprise" : acc + " % de réussite"} · ${run.score} pts · série max 🔥${run.runBest}\nRecord perso : ${best}. Fais mieux si t'es capable. 😏`;
     const url = /^https?:/.test(location.href) && !/claude|anthropic|usercontent/.test(location.hostname) ? location.href.split("#")[0] : "";
     try {
       if (navigator.share) { await navigator.share({ title: "Géo-Clash", text, url: url || undefined }); return; }
@@ -826,28 +1259,30 @@
     }
   }
 
-  // ---------------------------------------------------------------- Effets
+  // ================================================================ Effets
   let audio = null;
   function sfx(kind) {
     if (!soundOn) return;
     try {
       audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-      const notes = { good: [660, 880], bad: [180, 120], rank: [523, 659, 784, 1047] }[kind];
-      notes.forEach((f, i) => {
+      const cfg = {
+        good: [[660, 880], "triangle", 0.18], bad: [[180, 120], "sawtooth", 0.25], rank: [[523, 659, 784, 1047], "triangle", 0.18],
+        tick: [[1200], "square", 0.05], notif: [[988, 1319], "sine", 0.12], alarm: [[440, 330, 440, 330], "square", 0.15],
+      }[kind];
+      cfg[0].forEach((f, i) => {
         const o = audio.createOscillator(), g = audio.createGain();
-        o.type = kind === "bad" ? "sawtooth" : "triangle";
+        o.type = cfg[1];
         o.frequency.value = f;
         const t = audio.currentTime + i * 0.09;
         g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + (kind === "bad" ? 0.25 : 0.18));
+        g.gain.exponentialRampToValueAtTime(kind === "tick" ? 0.08 : 0.16, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + cfg[2]);
         o.connect(g).connect(audio.destination);
-        o.start(t); o.stop(t + 0.3);
+        o.start(t); o.stop(t + cfg[2] + 0.05);
       });
     } catch { /* pas de son, pas grave */ }
   }
   function buzz(p) { try { navigator.vibrate && navigator.vibrate(p); } catch { /* ignoré */ } }
-  function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const fx = $("fx"), ctx = fx.getContext("2d");
@@ -859,8 +1294,14 @@
     if (reduceMotion) return;
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * spread;
-      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 4, r: 3 + Math.random() * 4, c: pick(COLORS), life: 60 + Math.random() * 40, rot: Math.random() * 6 });
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 4, g: 0.25, r: 3 + Math.random() * 4, c: pick(COLORS), life: 60 + Math.random() * 40, rot: Math.random() * 6 });
     }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function spawnEmoji(e, x, y) {
+    if (reduceMotion) return;
+    const dir = x < 0 ? 1 : -1;
+    parts.push({ x, y, vx: dir * (6 + Math.random() * 5), vy: -1 + Math.random() * 2, g: 0, emoji: e, size: 30 + Math.random() * 18, life: 110, rot: 0 });
     if (!raf) raf = requestAnimationFrame(tick);
   }
   function burst(el, n) { const r = el.getBoundingClientRect(); spawn(r.left + r.width / 2, r.top + r.height / 2, n, 5); }
@@ -869,38 +1310,44 @@
     ctx.clearRect(0, 0, innerWidth, innerHeight);
     parts = parts.filter((p) => p.life > 0);
     parts.forEach((p) => {
-      p.vy += 0.25; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.life--; p.rot += 0.2;
+      p.vy += p.g; p.x += p.vx; p.y += p.vy; p.life--; p.rot += p.emoji ? 0.05 : 0.2;
       ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.globalAlpha = Math.min(1, p.life / 30);
-      ctx.fillStyle = p.c; ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); ctx.restore();
+      if (p.emoji) { ctx.font = `${p.size}px serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(p.emoji, 0, 0); }
+      else { ctx.fillStyle = p.c; ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); }
+      ctx.restore();
     });
     raf = parts.length ? requestAnimationFrame(tick) : null;
     if (!raf) ctx.clearRect(0, 0, innerWidth, innerHeight);
   }
 
-  // ---------------------------------------------------------------- Événements
-  document.querySelectorAll(".mode").forEach((b) => { b.onclick = () => startRun(b.dataset.mode); });
+  // ================================================================ Événements
+  $("typed-toggle").onclick = () => { typedMode = !typedMode; store.set("typed", typedMode); $("typed-toggle").setAttribute("aria-pressed", String(typedMode)); };
   $("open-sheet").onclick = () => { renderSheet(); show("sheet-view"); };
   $("close-sheet").onclick = () => { renderHome(); show("home"); };
-  $("sheet-play").onclick = () => startRun("tout");
-  $("quit").onclick = () => { clearTimeout(advanceTimer); renderHome(); show("home"); };
+  $("sheet-play").onclick = () => startRun("examen");
+  $("quit").onclick = () => { clearTimeout(advanceTimer); stopTimer(); current = null; renderHome(); show("home"); };
   $("next").onclick = nextQuestion;
+  $("notif").onclick = () => { $("notif").hidden = true; };
   $("rank-close").onclick = () => { $("rankup").hidden = true; nextQuestion(); };
-  $("replay").onclick = () => startRun(run.mode);
+  $("replay").onclick = () => startRun(run.mode.id);
   $("home-btn").onclick = () => { renderHome(); show("home"); };
   $("share").onclick = share;
+  $("typed").onsubmit = (e) => { e.preventDefault(); const v = $("typed-input").value; if (v.trim()) answer(v, null); };
   const soundBtn = $("sound");
   const paintSound = () => { soundBtn.textContent = soundOn ? "🔊" : "🔇"; };
   soundBtn.onclick = () => { soundOn = !soundOn; store.set("sound", soundOn); paintSound(); };
   paintSound();
 
-  // Clavier : 1–4 ou A–D pour répondre, Entrée pour continuer.
+  // Clavier : 1–6 ou A–F pour répondre, Entrée pour continuer.
   document.addEventListener("keydown", (e) => {
     if (!$("rankup").hidden && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); $("rank-close").click(); return; }
     if ($("quiz").hidden) return;
-    const idx = "1234".indexOf(e.key) >= 0 ? "1234".indexOf(e.key) : "abcd".indexOf(e.key.toLowerCase());
+    if (e.key === "Enter" && !$("next").hidden) { e.preventDefault(); nextQuestion(); return; }
+    if (document.activeElement === $("typed-input")) return;
+    const k = e.key.toLowerCase();
+    const idx = "123456".includes(k) ? "123456".indexOf(k) : "abcdef".indexOf(k);
     const btns = $("options").querySelectorAll(".opt");
-    if (idx >= 0 && btns[idx] && !btns[idx].disabled) btns[idx].click();
-    else if (e.key === "Enter" && !$("next").hidden) nextQuestion();
+    if (idx >= 0 && k.length === 1 && btns[idx] && !btns[idx].disabled) btns[idx].click();
   });
 
   renderHome();
