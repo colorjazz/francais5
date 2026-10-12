@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#071a26">
+<meta name="description" content="Quiz de géo : capitales, fleuves, montagnes. Il te rôtit si tu rates, il te glaze si tu enchaînes.">
+<title>Géo-Clash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Figtree:wght@400;600;700;800&display=swap">
+<style>
+  /* Layout : une seule colonne façon appli mobile, fond de carte marine avec courbes de niveau.
+     Thème unique et assumé (carte de navigation de nuit), donc pas de variante claire. */
+  :root {
+    --deep: #071a26;
+    --sea: #0d2b3e;
+    --sea-2: #143a52;
+    --sea-3: #1c4b68;
+    --ink: #eaf4f8;
+    --muted: #8fb3c4;
+    --line: rgba(143, 179, 196, 0.2);
+    --sand: #f4d58d;
+    --coral: #ff6b4a;
+    --mint: #3ddc97;
+    --red: #ff4d5e;
+    --font-display: "Bungee", "Impact", "Arial Black", sans-serif;
+    --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background-color: var(--deep);
+    background-image:
+      repeating-radial-gradient(circle at 18% 22%, transparent 0 34px, var(--line) 35px, transparent 36px),
+      repeating-radial-gradient(circle at 88% 78%, transparent 0 46px, var(--line) 47px, transparent 48px);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.45;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 16px 32px;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  section { display: flex; flex-direction: column; gap: 16px; flex: 1; }
+  h1, h2, h3 { margin: 0; text-wrap: balance; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--sand); outline-offset: 2px; }
+  .label {
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* ---------- Accueil ---------- */
+  .logo {
+    font-family: var(--font-display);
+    font-size: clamp(2.6rem, 13vw, 3.6rem);
+    line-height: 0.95;
+    color: var(--sand);
+    text-shadow: 4px 4px 0 var(--coral);
+    margin-top: 8px;
+  }
+  .tagline { color: var(--muted); font-size: 1.05rem; margin: 4px 0 0; }
+  .tagline b { color: var(--ink); }
+  .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat {
+    background: var(--sea); border: 1px solid var(--line); border-radius: 14px;
+    padding: 12px 14px; display: flex; flex-direction: column; gap: 2px;
+  }
+  .stat strong { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; font-variant-numeric: tabular-nums; }
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mode {
+    text-align: left; background: var(--sea-2); border: 2px solid var(--sea-3);
+    border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px;
+    transition: transform .12s, border-color .12s;
+  }
+  .mode:hover { border-color: var(--sand); }
+  .mode:active { transform: scale(.97); }
+  .mode .ico { font-size: 1.7rem; line-height: 1; }
+  .mode .name { font-family: var(--font-display); font-size: 1.05rem; color: var(--sand); }
+  .mode .count { font-size: .85rem; color: var(--muted); }
+  .mode.all { grid-column: 1 / -1; background: var(--coral); border-color: var(--coral); color: var(--deep); flex-direction: row; align-items: center; gap: 14px; }
+  .mode.all .name { color: var(--deep); font-size: 1.3rem; }
+  .mode.all .count { color: rgba(7,26,38,.75); font-weight: 700; }
+  .ghost {
+    background: transparent; border: 2px dashed var(--sea-3); border-radius: 14px;
+    padding: 12px; font-weight: 700; color: var(--ink);
+  }
+  .ghost:hover { border-color: var(--muted); }
+  .trophies { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .trophy {
+    aspect-ratio: 1; max-width: 100%; border-radius: 12px; background: var(--sea);
+    border: 1px solid var(--line); display: grid; place-items: center; font-size: 1.5rem;
+    position: relative; padding: 0;
+  }
+  .trophy.locked { filter: grayscale(1); opacity: .3; }
+  .trophy-detail { min-height: 2.6em; font-size: .9rem; color: var(--muted); margin: 0; }
+  .trophy-detail b { color: var(--sand); }
+
+  /* ---------- Quiz ---------- */
+  .topbar { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    width: 40px; height: 40px; flex: none; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--sea); display: grid; place-items: center; font-size: 1.1rem;
+  }
+  .progress { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .bar { height: 8px; border-radius: 99px; background: var(--sea-2); overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--sand); border-radius: 99px; transition: width .3s; }
+  .progress .label { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+  .hud { display: flex; gap: 10px; align-items: stretch; }
+  .flame {
+    flex: 1; background: var(--sea); border: 1px solid var(--line); border-radius: 14px;
+    padding: 8px 12px; display: flex; align-items: center; gap: 10px;
+  }
+  .flame .fire { font-size: 1.6rem; transition: transform .25s; display: inline-block; }
+  .flame strong { font-family: var(--font-display); font-weight: 400; font-size: 1.8rem; font-variant-numeric: tabular-nums; line-height: 1; }
+  .flame.hot { border-color: var(--coral); box-shadow: 0 0 18px rgba(255,107,74,.35) inset; }
+  .score { background: var(--sea); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; text-align: right; }
+  .score strong { display: block; font-family: var(--font-display); font-weight: 400; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+  .mult { color: var(--coral); font-weight: 800; font-size: .8rem; }
+
+  .card {
+    background: var(--sand); color: var(--deep); border-radius: 20px; padding: 18px 18px 20px;
+    box-shadow: 0 6px 0 #c9a85e;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .card .kicker { font-weight: 800; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+  .card .subject { font-family: var(--font-display); font-size: clamp(1.5rem, 7.5vw, 2.1rem); line-height: 1.1; overflow-wrap: anywhere; }
+  .card .cat { align-self: flex-start; font-size: .75rem; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: var(--deep); color: var(--sand); }
+
+  .options { display: grid; gap: 10px; }
+  .opt {
+    text-align: left; background: var(--sea-2); border: 2px solid var(--sea-3); border-radius: 14px;
+    padding: 14px 16px; font-size: 1.05rem; font-weight: 700; display: flex; gap: 12px; align-items: center;
+    transition: transform .1s, background .15s, border-color .15s;
+  }
+  .opt .key {
+    flex: none; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+    background: var(--deep); color: var(--muted); font-size: .8rem; font-weight: 800;
+  }
+  .opt:not(:disabled):hover { border-color: var(--sand); }
+  .opt:not(:disabled):active { transform: scale(.98); }
+  .opt:disabled { cursor: default; }
+  .opt.dim { opacity: .45; }
+  .opt.good { background: var(--mint); border-color: var(--mint); color: var(--deep); opacity: 1; }
+  .opt.good .key { background: rgba(7,26,38,.2); color: var(--deep); }
+  .opt.bad { background: var(--red); border-color: var(--red); color: #fff; opacity: 1; }
+  .opt.bad .key { background: rgba(0,0,0,.2); color: #fff; }
+
+  .prof { display: flex; gap: 10px; align-items: flex-start; min-height: 84px; }
+  .avatar {
+    flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--sea-2);
+    border: 2px solid var(--sea-3); display: grid; place-items: center; font-size: 1.5rem;
+    transition: transform .2s;
+  }
+  .bubble {
+    flex: 1; min-width: 0; background: var(--sea); border: 1px solid var(--line); border-radius: 4px 16px 16px 16px;
+    padding: 10px 14px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .bubble .who { font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .bubble .say { font-weight: 700; font-size: 1.02rem; }
+  .bubble .tip { font-size: .9rem; color: var(--muted); }
+  .bubble .tip b { color: var(--sand); }
+  .bubble.glaze { border-color: var(--mint); }
+  .bubble.glaze .say { color: var(--mint); }
+  .bubble.roast { border-color: var(--red); }
+  .bubble.roast .say { color: #ff8a95; }
+  .next {
+    background: var(--ink); color: var(--deep); border: 0; border-radius: 14px; padding: 14px;
+    font-family: var(--font-display); font-size: 1.05rem;
+  }
+
+  /* ---------- Fin de tour ---------- */
+  .verdict { font-family: var(--font-display); font-size: clamp(2rem, 10vw, 2.8rem); line-height: 1; color: var(--sand); text-shadow: 3px 3px 0 var(--coral); }
+  .verdict.fail { color: var(--red); text-shadow: 3px 3px 0 var(--deep); }
+  .end-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .review { display: flex; flex-direction: column; gap: 8px; }
+  .review-item { background: var(--sea); border: 1px solid var(--line); border-left: 4px solid var(--red); border-radius: 10px; padding: 10px 12px; }
+  .review-item .q { font-size: .85rem; color: var(--muted); }
+  .review-item .a { font-weight: 800; }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn {
+    border: 0; border-radius: 14px; padding: 14px; font-weight: 800; font-size: 1rem;
+    background: var(--sea-2); border: 2px solid var(--sea-3);
+  }
+  .btn.primary { background: var(--coral); border-color: var(--coral); color: var(--deep); font-family: var(--font-display); font-weight: 400; grid-column: 1 / -1; font-size: 1.1rem; }
+  .share-fallback { width: 100%; min-height: 90px; background: var(--sea); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font: inherit; }
+
+  /* ---------- Fiche ---------- */
+  .sheet { display: flex; flex-direction: column; gap: 18px; }
+  .sheet h3 { font-family: var(--font-display); font-weight: 400; color: var(--sand); font-size: 1.1rem; margin-bottom: 8px; }
+  .sheet-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .sheet-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 12px; background: var(--sea); }
+  .sheet-row + .sheet-row { border-top: 1px solid var(--line); }
+  .sheet-row .k { font-weight: 800; min-width: 0; }
+  .sheet-row .v { color: var(--sand); font-weight: 700; min-width: 0; }
+  .sheet-row .t { grid-column: 1 / -1; font-size: .85rem; color: var(--muted); }
+
+  /* ---------- Overlay rang ---------- */
+  .overlay {
+    position: fixed; inset: 0; z-index: 20; background: rgba(7, 26, 38, .88);
+    display: grid; place-items: center; padding: 16px;
+  }
+  .rank-card {
+    width: 100%; max-width: 380px; text-align: center; background: var(--sea);
+    border: 3px solid var(--sand); border-radius: 24px; padding: 28px 20px;
+    display: flex; flex-direction: column; gap: 10px; animation: pop .45s cubic-bezier(.2,1.6,.4,1);
+  }
+  .rank-card .badge { font-size: 4.5rem; line-height: 1; }
+  .rank-card .rank-title { font-family: var(--font-display); font-size: 1.6rem; color: var(--sand); line-height: 1.1; }
+  .rank-card p { margin: 0; color: var(--muted); }
+  .toast {
+    position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 12px); transform: translateX(-50%);
+    z-index: 30; background: var(--sand); color: var(--deep); font-weight: 800; padding: 10px 16px;
+    border-radius: 99px; box-shadow: 0 6px 20px rgba(0,0,0,.4); max-width: calc(100% - 32px); text-align: center;
+    animation: drop .35s ease;
+  }
+  #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 25; }
+
+  @keyframes pop { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes drop { 0% { transform: translate(-50%, -30px); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.45) rotate(-8deg); } 100% { transform: scale(1); } }
+  @keyframes deal { 0% { transform: translateY(10px) scale(.97); opacity: .4; } 100% { transform: none; opacity: 1; } }
+  .deal { animation: deal .25s ease-out; }
+  .shake { animation: shake .4s; }
+  .bump { animation: bump .4s; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ================= ACCUEIL ================= -->
+  <section id="home">
+    <div>
+      <h1 class="logo">GÉO-<br>CLASH</h1>
+      <p class="tagline">Capitales, fleuves, montagnes. <b>Étudie ou fais-toi rôtir.</b></p>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><span class="label">Record de série</span><strong id="home-best">0</strong></div>
+      <div class="stat"><span class="label">Trophées</span><strong id="home-trophies">0/10</strong></div>
+    </div>
+
+    <div class="modes">
+      <button class="mode all" data-mode="tout" type="button">
+        <span class="ico">🌍</span>
+        <span><span class="name">Tout le paquet</span><br><span class="count">32 questions · le vrai test</span></span>
+      </button>
+      <button class="mode" data-mode="capitales" type="button"><span class="ico">🏛️</span><span class="name">Capitales</span><span class="count">16 questions</span></button>
+      <button class="mode" data-mode="lieux" type="button"><span class="ico">🏔️</span><span class="name">Fleuves &amp; monts</span><span class="count">16 questions</span></button>
+    </div>
+
+    <button class="ghost" id="open-sheet" type="button">📖 Voir la fiche avant de te faire humilier</button>
+
+    <div>
+      <div class="label" style="margin-bottom:8px">Tes trophées</div>
+      <div class="trophies" id="trophy-grid"></div>
+      <p class="trophy-detail" id="trophy-detail" style="margin-top:8px">Touche un trophée pour voir comment le débloquer.</p>
+    </div>
+  </section>
+
+  <!-- ================= QUIZ ================= -->
+  <section id="quiz" hidden>
+    <div class="topbar">
+      <button class="icon-btn" id="quit" type="button" aria-label="Quitter">✕</button>
+      <div class="progress">
+        <div class="label"><span id="prog-text">1 / 32</span><span id="err-text">0 erreur</span></div>
+        <div class="bar"><span id="prog-bar"></span></div>
+      </div>
+      <button class="icon-btn" id="sound" type="button" aria-label="Son">🔊</button>
+    </div>
+
+    <div class="hud">
+      <div class="flame" id="flame">
+        <span class="fire" id="fire">🔥</span>
+        <div><div class="label">Série</div><strong id="streak">0</strong></div>
+      </div>
+      <div class="score">
+        <span class="label">Score</span>
+        <strong id="score">0</strong>
+        <span class="mult" id="mult">×1</span>
+      </div>
+    </div>
+
+    <div class="card" id="card">
+      <span class="cat" id="q-cat">Capitale</span>
+      <span class="kicker" id="q-kicker">Capitale de</span>
+      <span class="subject" id="q-subject">Australie</span>
+    </div>
+
+    <div class="options" id="options"></div>
+
+    <div class="prof">
+      <div class="avatar" id="avatar">🧭</div>
+      <div class="bubble" id="bubble">
+        <span class="who">Prof. Boussole</span>
+        <span class="say" id="say">Prouve que t'as ouvert ton cahier au moins une fois.</span>
+        <span class="tip" id="tip" hidden></span>
+      </div>
+    </div>
+
+    <button class="next" id="next" type="button" hidden>Suivant →</button>
+  </section>
+
+  <!-- ================= FIN DE TOUR ================= -->
+  <section id="end" hidden>
+    <div class="label">Tour terminé</div>
+    <h2 class="verdict" id="verdict">SANS FAUTE</h2>
+    <div class="prof">
+      <div class="avatar">🧭</div>
+      <div class="bubble" id="end-bubble"><span class="who">Prof. Boussole</span><span class="say" id="end-say"></span></div>
+    </div>
+    <div class="end-stats">
+      <div class="stat"><span class="label">Réussite</span><strong id="end-acc">0 %</strong></div>
+      <div class="stat"><span class="label">Score</span><strong id="end-score">0</strong></div>
+      <div class="stat"><span class="label">Meilleure série</span><strong id="end-streak">0</strong></div>
+      <div class="stat"><span class="label">Erreurs</span><strong id="end-err">0</strong></div>
+    </div>
+    <div id="review-wrap">
+      <div class="label" style="margin-bottom:8px">À revoir (t'as raté ça)</div>
+      <div class="review" id="review"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="replay" type="button">Rejouer</button>
+      <button class="btn" id="share" type="button">📤 Défier un ami</button>
+      <button class="btn" id="home-btn" type="button">Accueil</button>
+    </div>
+    <textarea class="share-fallback" id="share-text" readonly hidden></textarea>
+  </section>
+
+  <!-- ================= FICHE ================= -->
+  <section id="sheet-view" hidden>
+    <div class="topbar">
+      <button class="icon-btn" id="close-sheet" type="button" aria-label="Retour">←</button>
+      <h2 style="font-family:var(--font-display);font-weight:400;font-size:1.3rem">La fiche</h2>
+    </div>
+    <p class="tagline" style="margin:0">Tout ce qui peut tomber. Lis-la. Vraiment.</p>
+    <div class="sheet" id="sheet"></div>
+    <button class="btn primary" id="sheet-play" type="button">J'ai lu, je suis prêt</button>
+  </section>
+</div>
+
+<div class="overlay" id="rankup" hidden>
+  <div class="rank-card">
+    <div class="label">Rang débloqué</div>
+    <div class="badge" id="rank-badge">🥉</div>
+    <div class="rank-title" id="rank-title">Apprenti Explorateur</div>
+    <p id="rank-line"></p>
+    <button class="btn primary" id="rank-close" type="button">Continuer la série</button>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+<canvas id="fx"></canvas>
+
+<script>
+(() => {
+  // ---------------------------------------------------------------- Données
+  // Matière tirée des notes de cours. "piege" = la mauvaise réponse classique,
+  // toujours glissée dans les choix pour voir si l'élève tombe dedans.
+  const CAPITALES = [
+    { pays: "Costa Rica", cap: "San José", piege: "San Juan", tip: "San Juan, c'est Porto Rico. Le Costa Rica, c'est <b>San José</b>." },
+    { pays: "Allemagne", cap: "Berlin", piege: "Bonn", tip: "Bonn était la capitale de l'Allemagne de l'Ouest. Depuis la réunification : <b>Berlin</b>." },
+    { pays: "Algérie", cap: "Alger", piege: "Oran", tip: "Oran est la 2e ville. La capitale porte presque le nom du pays : <b>Alger</b>." },
+    { pays: "Japon", cap: "Tokyo", piege: "Kyoto", tip: "Kyoto est l'ancienne capitale impériale. Aujourd'hui : <b>Tokyo</b>." },
+    { pays: "Australie", cap: "Canberra", piege: "Sydney", tip: "Le piège le plus célèbre du monde : pas Sydney, <b>Canberra</b>." },
+    { pays: "Corée du Sud", cap: "Séoul", piege: "Pyongyang", tip: "Pyongyang, c'est la Corée du Nord. Mauvaise Corée. Au Sud : <b>Séoul</b>." },
+    { pays: "Brésil", cap: "Brasilia", piege: "Rio de Janeiro", tip: "Rio a été la capitale jusqu'en 1960. Maintenant : <b>Brasilia</b>." },
+    { pays: "Égypte", cap: "Le Caire", piege: "Alexandrie", tip: "Alexandrie est sur la côte. La capitale, sur le Nil : <b>Le Caire</b>." },
+  ];
+  const FLEUVES = [
+    { nom: "Amazone", lieu: "Brésil, Pérou, Colombie", piege: "Argentine, Uruguay", leurre: "Orénoque", tip: "L'Amazone part des Andes au <b>Pérou</b> et traverse le <b>Brésil</b> (et la <b>Colombie</b>)." },
+    { nom: "Nil", lieu: "Égypte, Soudan, Ouganda…", piege: "Maroc, Algérie", leurre: "Niger", tip: "Le Nil descend de l'<b>Ouganda</b>, passe au <b>Soudan</b> et finit en <b>Égypte</b>." },
+    { nom: "Gange", lieu: "Inde, Bangladesh", piege: "Pakistan, Inde", leurre: "Indus", tip: "Celui du Pakistan, c'est l'Indus. Le Gange : <b>Inde, Bangladesh</b>." },
+  ];
+  const MONTAGNES = [
+    { nom: "Everest", lieu: "Népal, Chine (Tibet)", piege: "Inde, Bhoutan", leurre: "Annapurna", tip: "Plus haut sommet du monde (8 849 m), entre le <b>Népal</b> et la <b>Chine (Tibet)</b>." },
+    { nom: "K2", lieu: "Pakistan, Chine", piege: "Népal, Inde", leurre: "Lhotse", tip: "2e plus haut sommet (8 611 m), entre le <b>Pakistan</b> et la <b>Chine</b>." },
+    { nom: "Kilimandjaro", lieu: "Tanzanie", piege: "Kenya", leurre: "Mont Kenya", tip: "On le voit du Kenya, mais il est en <b>Tanzanie</b>. Plus haut sommet d'Afrique." },
+    { nom: "Denali (Mont McKinley)", lieu: "États-Unis (Alaska)", piege: "Canada (Yukon)", leurre: "Mont Logan", tip: "Plus haut sommet d'Amérique du Nord, en <b>Alaska (États-Unis)</b>." },
+    { nom: "Mont Blanc", lieu: "France, Italie", piege: "Suisse, Autriche", leurre: "Cervin", tip: "Sur la frontière entre la <b>France</b> et l'<b>Italie</b>." },
+  ];
+
+  // ---------------------------------------------------------------- Répliques
+  const GLAZE = [
+    // 1–2
+    ["Bon. Même une horloge brisée a raison deux fois par jour.", "Ok ok, t'as ouvert ton cahier.", "Correct. Je suis presque impressionné. Presque.", "Pas mal pour quelqu'un qui dormait en classe."],
+    // 3–5
+    ["Tu commences à me faire peur là. 😳", "Ton prof de géo vient de verser une larme de fierté.", "La boussole interne est calibrée. 🧭", "Attention, il est chaud là. 🔥"],
+    // 6–9
+    ["Ton cerveau a littéralement un six-pack. 💪", "Même Google Maps te demande son chemin. 🗺️", "Christophe Colomb aurait jamais été perdu avec toi.", "Masterclass. Le globe terrestre t'appartient."],
+    // 10+
+    ["T'es le GOAT absolu. 🐐 Point final.", "C'est plus de la géo, c'est de la sorcellerie. ✨", "Einstein pleure de jalousie dans sa tombe. 🧠💥", "Les cartographes du monde entier veulent ton autographe.", "Arrête. Laisse-en pour les autres. 👑"],
+  ];
+  const ROAST = [
+    "Même une brique a un meilleur sens de l'orientation. 🧱",
+    "Frérot, t'as cru qu'on était sur Mars ? 👽",
+    "Mon chat a marché sur l'écran, il avait la bonne réponse. 🐈",
+    "T'as lu tes notes avec les yeux fermés ? 🙈",
+    "La géographie est en PLS devant toi. 💀",
+    "Retourne en 1re année, c'est grave là. 📉",
+    "Ton GPS a démissionné. 📡",
+    "Christophe Colomb s'est trompé de continent et il a fait mieux que toi.",
+  ];
+  const ROAST_TRAP = [
+    "T'es tombé dans le piège comme un touriste en sandales. 🪤",
+    "Le piège était ÉNORME et t'as sauté dedans à pieds joints. 🪤",
+    "C'était LE piège classique. Tout le monde le connaît. Sauf toi.",
+  ];
+  const ROAST_STREAK = [
+    "Une série de {n}… jetée à la poubelle. 🗑️",
+    "{n} bonnes réponses et tu t'étouffes LÀ-DESSUS ?",
+    "RIP ta série de {n}. Elle méritait mieux. ⚰️",
+  ];
+  const ROAST_REPEAT = [
+    "ENCORE ?! On l'a vue il y a deux minutes. Mémoire de poisson rouge. 🐟",
+    "Même question, même erreur. T'es constant au moins.",
+  ];
+
+  const RANKS = {
+    3:  { badge: "🧳", title: "Touriste réveillé", line: "Trois de suite. Tu sais au moins où tu es." },
+    5:  { badge: "🥉", title: "Apprenti Explorateur", line: "Cinq ! Le multiplicateur passe à ×2." },
+    10: { badge: "🥈", title: "Cartographe Alpha", line: "Dix de suite. Le globe tremble. ×3." },
+    15: { badge: "🥇", title: "Dieu de la Boussole", line: "Quinze. Le Nord, c'est toi maintenant. ×4." },
+    20: { badge: "👑", title: "GÉO-CHAD SUPRÊME", line: "Vingt. Les profs de géo font une réunion d'urgence. ×5." },
+    32: { badge: "🌍", title: "ATLAS HUMAIN", line: "32 sur 32 sans une erreur. Tout le paquet. Légendaire." },
+  };
+
+  const TROPHIES = [
+    { id: "premier", icon: "👣", name: "Premier pas", desc: "Avoir une bonne réponse. Le strict minimum." },
+    { id: "s5", icon: "🥉", name: "Apprenti Explorateur", desc: "Série de 5 bonnes réponses." },
+    { id: "s10", icon: "🥈", name: "Cartographe Alpha", desc: "Série de 10." },
+    { id: "s20", icon: "👑", name: "GÉO-CHAD SUPRÊME", desc: "Série de 20." },
+    { id: "atlas", icon: "🌍", name: "Atlas humain", desc: "32 de suite : tout le paquet sans une seule erreur." },
+    { id: "sansfaute", icon: "💯", name: "Sans faute", desc: "Finir un tour (n'importe quel mode) sans aucune erreur." },
+    { id: "vengeance", icon: "🔁", name: "Vengeance", desc: "Réussir une question que tu avais ratée plus tôt dans le tour." },
+    { id: "eclair", icon: "⚡", name: "Éclair", desc: "5 bonnes réponses de suite en moins de 3 secondes chacune." },
+    { id: "antipiege", icon: "🪤", name: "Anti-piège", desc: "Éviter 10 pièges classiques (Sydney, Rio, Kyoto…)." },
+    { id: "clown", icon: "🤡", name: "Clown certifié", desc: "3 erreurs de suite. Félicitations… je suppose." },
+  ];
+
+  // ---------------------------------------------------------------- Utilitaires
+  const $ = (id) => document.getElementById(id);
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const shuffle = (arr) => {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  };
+  const sampleExcept = (pool, exclude, n) => shuffle(pool.filter((x) => !exclude.includes(x))).slice(0, n);
+  const plural = (n, word) => `${n} ${word}${n > 1 ? "s" : ""}`;
+
+  const store = {
+    get(key, fallback) { try { const v = localStorage.getItem("geoclash:" + key); return v == null ? fallback : JSON.parse(v); } catch { return fallback; } },
+    set(key, val) { try { localStorage.setItem("geoclash:" + key, JSON.stringify(val)); } catch { /* stockage indisponible : on continue sans */ } },
+  };
+
+  // ---------------------------------------------------------------- Questions
+  // Chaque fiche donne deux questions : dans un sens et dans l'autre.
+  const allCaps = CAPITALES.map((c) => c.cap);
+  const allPays = CAPITALES.map((c) => c.pays);
+  const allLieux = [...FLEUVES, ...MONTAGNES].map((x) => x.lieu);
+  const allFleuves = FLEUVES.map((f) => f.nom);
+  const allMonts = MONTAGNES.map((m) => m.nom);
+
+  function buildQuestions(mode) {
+    const qs = [];
+    if (mode === "tout" || mode === "capitales") {
+      CAPITALES.forEach((c, i) => {
+        qs.push({
+          key: "cap-d-" + i, cat: "Capitale", kicker: "Quelle est la capitale de…", subject: c.pays,
+          answer: c.cap, tip: c.tip, trap: c.piege,
+          makeOptions: () => [c.cap, c.piege, ...sampleExcept(allCaps, [c.cap], 2)],
+          review: `Capitale de ${c.pays}`,
+        });
+        qs.push({
+          key: "cap-r-" + i, cat: "Capitale", kicker: "Quel pays a pour capitale…", subject: c.cap,
+          answer: c.pays, tip: c.tip,
+          makeOptions: () => [c.pays, ...sampleExcept(allPays, [c.pays], 3)],
+          review: `${c.cap} est la capitale de`,
+        });
+      });
+    }
+    if (mode === "tout" || mode === "lieux") {
+      FLEUVES.forEach((f, i) => {
+        qs.push({
+          key: "fl-d-" + i, cat: "Fleuve", kicker: "Où coule le fleuve…", subject: f.nom,
+          answer: f.lieu, tip: f.tip, trap: f.piege,
+          makeOptions: () => [f.lieu, f.piege, ...sampleExcept(allLieux, [f.lieu], 2)],
+          review: `Où coule le fleuve ${f.nom} ?`,
+        });
+        qs.push({
+          key: "fl-r-" + i, cat: "Fleuve", kicker: "Quel fleuve coule ici ?", subject: f.lieu,
+          answer: f.nom, tip: f.tip, trap: f.leurre,
+          makeOptions: () => [f.nom, f.leurre, ...sampleExcept(allFleuves, [f.nom], 2)],
+          review: `Fleuve : ${f.lieu}`,
+        });
+      });
+      MONTAGNES.forEach((m, i) => {
+        qs.push({
+          key: "mt-d-" + i, cat: "Montagne", kicker: "Où se trouve la montagne…", subject: m.nom,
+          answer: m.lieu, tip: m.tip, trap: m.piege,
+          makeOptions: () => [m.lieu, m.piege, ...sampleExcept(allLieux, [m.lieu], 2)],
+          review: `Où se trouve ${m.nom} ?`,
+        });
+        qs.push({
+          key: "mt-r-" + i, cat: "Montagne", kicker: "Quelle montagne se trouve ici ?", subject: m.lieu,
+          answer: m.nom, tip: m.tip, trap: m.leurre,
+          makeOptions: () => [m.nom, m.leurre, ...sampleExcept(allMonts, [m.nom], 2)],
+          review: `Montagne : ${m.lieu}`,
+        });
+      });
+    }
+    return qs;
+  }
+
+  // ---------------------------------------------------------------- État
+  let best = store.get("best", 0);
+  let unlocked = new Set(store.get("trophies", []));
+  let trapsAvoided = store.get("traps", 0);
+  let soundOn = store.get("sound", true);
+
+  let run = null;     // état du tour en cours
+  let current = null; // question affichée
+  let advanceTimer = null;
+
+  function newRun(mode) {
+    const qs = shuffle(buildQuestions(mode));
+    run = {
+      mode, queue: qs, total: qs.length, done: 0,
+      streak: 0, runBest: 0, score: 0, errors: 0,
+      wrongRun: 0, fastRun: 0,
+      missed: new Map(),  // key -> question
+      fixed: new Set(),
+      waiting: false,
+    };
+  }
+
+  // ---------------------------------------------------------------- Écrans
+  const views = ["home", "quiz", "end", "sheet-view"];
+  function show(id) {
+    views.forEach((v) => { $(v).hidden = v !== id; });
+    window.scrollTo(0, 0);
+  }
+
+  function renderHome() {
+    $("home-best").textContent = best;
+    $("home-trophies").textContent = `${unlocked.size}/${TROPHIES.length}`;
+    const grid = $("trophy-grid");
+    grid.innerHTML = "";
+    TROPHIES.forEach((t) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "trophy" + (unlocked.has(t.id) ? "" : " locked");
+      b.textContent = t.icon;
+      b.setAttribute("aria-label", t.name);
+      b.onclick = () => {
+        $("trophy-detail").innerHTML = `<b>${t.name}</b>${unlocked.has(t.id) ? " ✓" : " 🔒"} — ${t.desc}`;
+      };
+      grid.appendChild(b);
+    });
+  }
+
+  function renderSheet() {
+    const groups = [
+      ["🏛️ Capitales", CAPITALES.map((c) => [c.pays, c.cap, c.tip])],
+      ["🌊 Fleuves", FLEUVES.map((f) => [f.nom, f.lieu, f.tip])],
+      ["🏔️ Montagnes", MONTAGNES.map((m) => [m.nom, m.lieu, m.tip])],
+    ];
+    $("sheet").innerHTML = groups.map(([title, rows]) => `
+      <div>
+        <h3>${title}</h3>
+        <div class="sheet-list">
+          ${rows.map(([k, v, t]) => `<div class="sheet-row"><span class="k">${k}</span><span class="v">${v}</span><span class="t">${t}</span></div>`).join("")}
+        </div>
+      </div>`).join("");
+  }
+
+  // ---------------------------------------------------------------- Quiz
+  function startRun(mode) {
+    newRun(mode);
+    show("quiz");
+    setProf("🧭", "neutral", pick([
+      "Prouve que t'as ouvert ton cahier au moins une fois.",
+      "Allez, montre-moi ce que t'as dans le crâne. 🧠",
+      "Je t'écoute. Et je juge.",
+    ]));
+    updateHud();
+    nextQuestion();
+  }
+
+  function nextQuestion() {
+    clearTimeout(advanceTimer);
+    $("next").hidden = true;
+    if (!run.queue.length) return endRun();
+    current = run.queue.shift();
+    current.startedAt = performance.now();
+
+    $("q-cat").textContent = current.cat;
+    $("q-kicker").textContent = current.kicker;
+    $("q-subject").textContent = current.subject;
+    const card = $("card");
+    card.classList.remove("deal"); void card.offsetWidth; card.classList.add("deal");
+
+    const opts = shuffle([...new Set(current.makeOptions())]).slice(0, 4);
+    if (!opts.includes(current.answer)) opts[0] = current.answer;
+    const box = $("options");
+    box.innerHTML = "";
+    opts.forEach((opt, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "opt";
+      b.innerHTML = `<span class="key">${"ABCD"[i]}</span><span></span>`;
+      b.lastChild.textContent = opt;
+      b.dataset.value = opt;
+      b.onclick = () => answer(b, opt);
+      box.appendChild(b);
+    });
+    updateHud();
+  }
+
+  function answer(btn, value) {
+    const buttons = [...$("options").querySelectorAll(".opt")];
+    buttons.forEach((b) => { b.disabled = true; });
+    const ok = value === current.answer;
+    const elapsed = (performance.now() - current.startedAt) / 1000;
+    run.done++;
+
+    if (ok) {
+      btn.classList.add("good");
+      buttons.forEach((b) => { if (b !== btn) b.classList.add("dim"); });
+      run.streak++;
+      run.wrongRun = 0;
+      run.runBest = Math.max(run.runBest, run.streak);
+      const mult = multiplier();
+      run.score += 10 * mult + (elapsed < 3 ? 5 : 0);
+      if (run.streak > best) { best = run.streak; store.set("best", best); }
+
+      run.fastRun = elapsed < 3 ? run.fastRun + 1 : 0;
+      if (current.trap && buttons.some((b) => b.dataset.value === current.trap)) {
+        trapsAvoided++; store.set("traps", trapsAvoided);
+      }
+
+      // Trophées
+      unlock("premier");
+      if (run.streak >= 5) unlock("s5");
+      if (run.streak >= 10) unlock("s10");
+      if (run.streak >= 20) unlock("s20");
+      if (run.streak >= 32) unlock("atlas");
+      if (run.fastRun >= 5) unlock("eclair");
+      if (trapsAvoided >= 10) unlock("antipiege");
+      let revenge = false;
+      if (run.missed.has(current.key) && !run.fixed.has(current.key)) {
+        run.fixed.add(current.key); revenge = true; unlock("vengeance");
+      }
+
+      const tier = run.streak >= 10 ? 3 : run.streak >= 6 ? 2 : run.streak >= 3 ? 1 : 0;
+      let line = pick(GLAZE[tier]);
+      if (revenge) line = "La rédemption ! Tu l'avais ratée, maintenant tu la connais. 🔁";
+      else if (elapsed < 1.5 && run.streak >= 3) line = "Réponse en " + elapsed.toFixed(1) + " s. T'as même pas réfléchi. Respect. ⚡";
+      setProf(tier >= 2 ? "🤩" : "😏", "glaze", line);
+      sfx("good");
+      burst(btn, tier >= 2 ? 40 : 18);
+
+      updateHud();
+      if (RANKS[run.streak]) {
+        showRank(RANKS[run.streak]);
+      } else {
+        advanceTimer = setTimeout(nextQuestion, 1300);
+        $("next").hidden = false;
+      }
+    } else {
+      btn.classList.add("bad");
+      buttons.forEach((b) => {
+        if (b.dataset.value === current.answer) b.classList.add("good");
+        else if (b !== btn) b.classList.add("dim");
+      });
+      const lost = run.streak;
+      const repeat = run.missed.has(current.key);
+      run.streak = 0;
+      run.fastRun = 0;
+      run.errors++;
+      run.wrongRun++;
+      run.missed.set(current.key, current);
+      if (run.wrongRun >= 3) unlock("clown");
+
+      // La question ratée revient un peu plus loin dans le tour.
+      run.queue.splice(Math.min(3, run.queue.length), 0, current);
+      run.total++;
+
+      let line;
+      if (repeat) line = pick(ROAST_REPEAT);
+      else if (lost >= 5) line = pick(ROAST_STREAK).replace("{n}", lost);
+      else if (value === current.trap) line = pick(ROAST_TRAP);
+      else if (run.wrongRun >= 3) line = "Trois erreurs de suite. Je commence à croire que tu le fais exprès. 🤡";
+      else line = pick(ROAST);
+      setProf(pick(["😤", "🤦", "💀", "🙄"]), "roast", line, `Bonne réponse : <b>${escapeHtml(current.answer)}</b>. ${current.tip}`);
+      sfx("bad");
+      buzz([60, 40, 90]);
+      const app = document.querySelector(".app");
+      app.classList.remove("shake"); void app.offsetWidth; app.classList.add("shake");
+
+      updateHud();
+      $("next").hidden = false; // pas d'avance automatique : il faut lire la correction
+    }
+  }
+
+  function multiplier() { return 1 + Math.floor(run.streak / 5); }
+
+  function updateHud() {
+    $("streak").textContent = run.streak;
+    $("score").textContent = run.score;
+    $("mult").textContent = "×" + multiplier();
+    $("flame").classList.toggle("hot", run.streak >= 5);
+    $("fire").style.transform = `scale(${Math.min(1 + run.streak * 0.05, 1.8)})`;
+    $("fire").textContent = run.streak === 0 ? "🧊" : run.streak >= 10 ? "☄️" : "🔥";
+    const num = Math.min(run.done + 1, run.total);
+    $("prog-text").textContent = `${num} / ${run.total}`;
+    $("err-text").textContent = plural(run.errors, "erreur");
+    $("prog-bar").style.width = (run.done / run.total) * 100 + "%";
+  }
+
+  function setProf(face, mood, say, tip) {
+    $("avatar").textContent = face;
+    $("bubble").className = "bubble" + (mood === "neutral" ? "" : " " + mood);
+    $("say").textContent = say;
+    $("tip").hidden = !tip;
+    $("tip").innerHTML = tip || "";
+    const av = $("avatar");
+    av.classList.remove("bump"); void av.offsetWidth; av.classList.add("bump");
+  }
+
+  function showRank(r) {
+    clearTimeout(advanceTimer);
+    $("rank-badge").textContent = r.badge;
+    $("rank-title").textContent = r.title;
+    $("rank-line").textContent = r.line;
+    $("rankup").hidden = false;
+    sfx("rank");
+    confetti(140);
+    $("rank-close").focus();
+  }
+
+  function endRun() {
+    const answered = run.done;
+    const correct = answered - run.errors;
+    const acc = answered ? Math.round((correct / answered) * 100) : 0;
+    const perfect = run.errors === 0;
+    if (perfect) unlock("sansfaute");
+
+    let verdict, say;
+    if (perfect) { verdict = "SANS FAUTE 💯"; say = "Zéro erreur. J'ai plus rien à dire. Tu peux aller à l'exam les yeux fermés. 🐐"; }
+    else if (acc >= 85) { verdict = "PRESQUE !"; say = "Solide. Mais « presque », ça compte pas à l'exam. Refais-le sans faute."; }
+    else if (acc >= 60) { verdict = "MOUAIS."; say = "Correct, sans plus. Relis la fiche et reviens quand t'es sérieux."; }
+    else { verdict = "CATASTROPHE"; say = "J'ai vu des pigeons voyageurs plus calés que toi. Fiche. Maintenant. 📖"; }
+
+    $("verdict").textContent = verdict;
+    $("verdict").className = "verdict" + (acc < 60 ? " fail" : "");
+    $("end-bubble").className = "bubble " + (acc >= 85 ? "glaze" : "roast");
+    $("end-say").textContent = say;
+    $("end-acc").textContent = acc + " %";
+    $("end-score").textContent = run.score;
+    $("end-streak").textContent = run.runBest;
+    $("end-err").textContent = run.errors;
+
+    const missed = [...run.missed.values()];
+    $("review-wrap").hidden = !missed.length;
+    $("review").innerHTML = missed.map((q) =>
+      `<div class="review-item"><div class="q">${escapeHtml(q.review)}</div><div class="a">${escapeHtml(q.answer)}</div></div>`).join("");
+    $("share-text").hidden = true;
+    $("share").textContent = "📤 Défier un ami";
+
+    show("end");
+    if (perfect) { confetti(220); sfx("rank"); } else if (acc >= 85) confetti(60);
+  }
+
+  // ---------------------------------------------------------------- Trophées
+  function unlock(id) {
+    if (unlocked.has(id)) return;
+    unlocked.add(id);
+    store.set("trophies", [...unlocked]);
+    const t = TROPHIES.find((x) => x.id === id);
+    toast(`🏆 Trophée débloqué : ${t.icon} ${t.name}`);
+  }
+  let toastTimer = null;
+  function toast(text) {
+    const el = $("toast");
+    el.textContent = text;
+    el.hidden = false;
+    el.style.animation = "none"; void el.offsetWidth; el.style.animation = "";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+  }
+
+  // ---------------------------------------------------------------- Partage
+  async function share() {
+    const answered = run.done;
+    const acc = answered ? Math.round(((answered - run.errors) / answered) * 100) : 0;
+    const mode = { tout: "tout le paquet", capitales: "capitales", lieux: "fleuves & montagnes" }[run.mode];
+    let text = `🌍 GÉO-CLASH (${mode})\n${run.errors === 0 ? "💯 SANS FAUTE" : acc + " % de réussite"} · ${run.score} pts · série max 🔥${run.runBest}\nRecord perso : ${best}. Fais mieux si t'es capable. 😏`;
+    const url = /^https?:/.test(location.href) && !/claude|anthropic|usercontent/.test(location.hostname) ? location.href.split("#")[0] : "";
+    try {
+      if (navigator.share) { await navigator.share({ title: "Géo-Clash", text, url: url || undefined }); return; }
+    } catch (e) { if (e && e.name === "AbortError") return; }
+    if (url) text += "\n" + url;
+    try {
+      await navigator.clipboard.writeText(text);
+      $("share").textContent = "✅ Copié ! Colle-le à tes amis";
+    } catch {
+      const ta = $("share-text");
+      ta.hidden = false; ta.value = text; ta.focus(); ta.select();
+      $("share").textContent = "Copie le texte ci-dessous";
+    }
+  }
+
+  // ---------------------------------------------------------------- Effets
+  let audio = null;
+  function sfx(kind) {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const notes = { good: [660, 880], bad: [180, 120], rank: [523, 659, 784, 1047] }[kind];
+      notes.forEach((f, i) => {
+        const o = audio.createOscillator(), g = audio.createGain();
+        o.type = kind === "bad" ? "sawtooth" : "triangle";
+        o.frequency.value = f;
+        const t = audio.currentTime + i * 0.09;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + (kind === "bad" ? 0.25 : 0.18));
+        o.connect(g).connect(audio.destination);
+        o.start(t); o.stop(t + 0.3);
+      });
+    } catch { /* pas de son, pas grave */ }
+  }
+  function buzz(p) { try { navigator.vibrate && navigator.vibrate(p); } catch { /* ignoré */ } }
+  function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fx = $("fx"), ctx = fx.getContext("2d");
+  let parts = [], raf = null;
+  const COLORS = ["#f4d58d", "#ff6b4a", "#3ddc97", "#eaf4f8", "#8fb3c4"];
+  function resize() { const d = window.devicePixelRatio || 1; fx.width = innerWidth * d; fx.height = innerHeight * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+  window.addEventListener("resize", resize); resize();
+  function spawn(x, y, n, spread) {
+    if (reduceMotion) return;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * spread;
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 4, r: 3 + Math.random() * 4, c: pick(COLORS), life: 60 + Math.random() * 40, rot: Math.random() * 6 });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function burst(el, n) { const r = el.getBoundingClientRect(); spawn(r.left + r.width / 2, r.top + r.height / 2, n, 5); }
+  function confetti(n) { spawn(innerWidth / 2, innerHeight * 0.35, n, 11); }
+  function tick() {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    parts = parts.filter((p) => p.life > 0);
+    parts.forEach((p) => {
+      p.vy += 0.25; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.life--; p.rot += 0.2;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.globalAlpha = Math.min(1, p.life / 30);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); ctx.restore();
+    });
+    raf = parts.length ? requestAnimationFrame(tick) : null;
+    if (!raf) ctx.clearRect(0, 0, innerWidth, innerHeight);
+  }
+
+  // ---------------------------------------------------------------- Événements
+  document.querySelectorAll(".mode").forEach((b) => { b.onclick = () => startRun(b.dataset.mode); });
+  $("open-sheet").onclick = () => { renderSheet(); show("sheet-view"); };
+  $("close-sheet").onclick = () => { renderHome(); show("home"); };
+  $("sheet-play").onclick = () => startRun("tout");
+  $("quit").onclick = () => { clearTimeout(advanceTimer); renderHome(); show("home"); };
+  $("next").onclick = nextQuestion;
+  $("rank-close").onclick = () => { $("rankup").hidden = true; nextQuestion(); };
+  $("replay").onclick = () => startRun(run.mode);
+  $("home-btn").onclick = () => { renderHome(); show("home"); };
+  $("share").onclick = share;
+  const soundBtn = $("sound");
+  const paintSound = () => { soundBtn.textContent = soundOn ? "🔊" : "🔇"; };
+  soundBtn.onclick = () => { soundOn = !soundOn; store.set("sound", soundOn); paintSound(); };
+  paintSound();
+
+  // Clavier : 1–4 ou A–D pour répondre, Entrée pour continuer.
+  document.addEventListener("keydown", (e) => {
+    if (!$("rankup").hidden && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); $("rank-close").click(); return; }
+    if ($("quiz").hidden) return;
+    const idx = "1234".indexOf(e.key) >= 0 ? "1234".indexOf(e.key) : "abcd".indexOf(e.key.toLowerCase());
+    const btns = $("options").querySelectorAll(".opt");
+    if (idx >= 0 && btns[idx] && !btns[idx].disabled) btns[idx].click();
+    else if (e.key === "Enter" && !$("next").hidden) nextQuestion();
+  });
+
+  renderHome();
+  show("home");
+})();
+</script>
+</body>
+</html>
