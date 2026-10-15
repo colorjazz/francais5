@@ -141,6 +141,8 @@
   .phase-tag { color: var(--mint); }
   .phase-tag.p2 { color: var(--sand); }
   .phase-tag.p3 { color: var(--red); }
+  .phase-tag.relax { color: var(--mint); }
+  .phases.off { opacity: .35; }
   .hud { display: flex; gap: 10px; align-items: stretch; }
   .flame {
     flex: 1; background: var(--sea); border: 1px solid var(--line); border-radius: 14px;
@@ -318,12 +320,17 @@
 
     <div>
       <div class="label" style="margin-bottom:6px">Chaque tour devient de plus en plus dur</div>
-      <div class="phases">
+      <div class="phases" id="phases">
         <div class="phase-chip"><b>Échauffement</b>Pas de chrono</div>
         <div class="phase-chip"><b>Chrono</b>12 s → 7 s</div>
         <div class="phase-chip"><b>Zone rouge</b>7 s → 4 s + distractions</div>
       </div>
     </div>
+
+    <button class="toggle" id="relax-toggle" type="button" aria-pressed="false">
+      <span class="txt"><b>🌴 Mode relaxe</b><span>Toujours 4 choix, pas de chrono, pas de distractions. Pour réviser tranquille.</span></span>
+      <span class="switch" aria-hidden="true"></span>
+    </button>
 
     <button class="toggle" id="typed-toggle" type="button" aria-pressed="false">
       <span class="txt"><b>✍️ Mode écrit</b><span>Pas de choix : tu tapes la réponse. Plus de temps, points ×2.</span></span>
@@ -770,6 +777,8 @@
   let trapsAvoided = store.get("traps", 0);
   let soundOn = store.get("sound", true);
   let typedMode = store.get("typed", false);
+  let relaxMode = store.get("relax", false);
+  if (relaxMode && typedMode) typedMode = false;
   let mastered = new Set(store.get("mastered", []));
   let misses = store.get("misses", {});
 
@@ -795,7 +804,7 @@
     const mode = MODES.find((m) => m.id === modeId);
     const qs = shuffle(mode.pick());
     run = {
-      mode, typed: typedMode, queue: qs, total: qs.length, base: qs.length, done: 0,
+      mode, relax: relaxMode, typed: typedMode && !relaxMode, queue: qs, total: qs.length, base: qs.length, done: 0,
       streak: 0, runBest: 0, score: 0, errors: 0, wrongRun: 0, fastRun: 0, redRun: 0, typedRun: 0,
       missed: new Map(), fixed: new Set(), retries: {}, phase: 1, announced: 1,
     };
@@ -826,7 +835,7 @@
     $("home-best").textContent = best;
     $("home-mastery").textContent = `${[...mastered].filter((k) => ALL.some((q) => q.key === k)).length}/${ALL.length}`;
     $("home-trophies").textContent = `${unlocked.size}/${TROPHIES.length}`;
-    $("typed-toggle").setAttribute("aria-pressed", String(typedMode));
+    paintToggles();
 
     $("modes").innerHTML = MODES.map((m) => {
       const n = m.id === "examen" ? 30 : m.pick().length;
@@ -883,7 +892,7 @@
     $("next").hidden = true;
     if (!run.queue.length) return endRun();
 
-    run.phase = Math.max(run.phase, computePhase());
+    if (!run.relax) run.phase = Math.max(run.phase, computePhase());
     if (run.phase > run.announced) { run.announced = run.phase; return announcePhase(run.phase); }
     document.body.classList.toggle("red-zone", run.phase === 3);
 
@@ -1147,8 +1156,8 @@
     $("err-text").textContent = plural(run.errors, "erreur");
     $("prog-bar").style.width = (run.done / run.total) * 100 + "%";
     const tag = $("phase-tag");
-    tag.textContent = ["", "Échauffement", "⏱️ Chrono", "🚨 Zone rouge"][run.phase];
-    tag.className = "phase-tag p" + run.phase;
+    tag.textContent = run.relax ? "🌴 Relaxe" : ["", "Échauffement", "⏱️ Chrono", "🚨 Zone rouge"][run.phase];
+    tag.className = "phase-tag " + (run.relax ? "relax" : "p" + run.phase);
   }
 
   function setProf(face, mood, say, tip) {
@@ -1192,15 +1201,16 @@
     const correct = answered - run.errors;
     const acc = answered ? Math.round((correct / answered) * 100) : 0;
     const perfect = run.errors === 0;
-    if (perfect) unlock("sansfaute");
+    if (perfect && !run.relax) unlock("sansfaute");
 
     let verdict, say;
-    if (perfect) { verdict = "SANS FAUTE 💯"; say = "Zéro erreur, zone rouge comprise. J'ai plus rien à dire. Va à l'exam les yeux fermés. 🐐"; }
+    if (perfect && run.relax) { verdict = "SANS FAUTE 💯"; say = "Zéro erreur. Joli. Maintenant enlève le mode relaxe et montre-moi que tu tiens sous pression. 😏"; }
+    else if (perfect) { verdict = "SANS FAUTE 💯"; say = "Zéro erreur, zone rouge comprise. J'ai plus rien à dire. Va à l'exam les yeux fermés. 🐐"; }
     else if (acc >= 85) { verdict = "PRESQUE !"; say = "Solide. Mais « presque », ça ne compte pas à l'exam. Refais-le sans faute."; }
     else if (acc >= 60) { verdict = "MOUAIS."; say = "Correct, sans plus. Relis la fiche et reviens quand t'es sérieux."; }
     else { verdict = "CATASTROPHE"; say = "J'ai vu des pigeons voyageurs plus calés que toi. La fiche. Maintenant. 📖"; }
 
-    $("end-label").textContent = `${run.mode.name}${run.typed ? " · mode écrit" : ""}`;
+    $("end-label").textContent = `${run.mode.name}${run.relax ? " · mode relaxe" : ""}${run.typed ? " · mode écrit" : ""}`;
     $("verdict").textContent = verdict;
     $("verdict").className = "verdict" + (acc < 60 ? " fail" : "");
     $("end-bubble").className = "bubble " + (acc >= 85 ? "glaze" : "roast");
@@ -1243,7 +1253,7 @@
   async function share() {
     const answered = run.done;
     const acc = answered ? Math.round(((answered - run.errors) / answered) * 100) : 0;
-    let text = `🌍 GÉO-CLASH · ${run.mode.name}${run.typed ? " (mode écrit ✍️)" : ""}\n${run.errors === 0 ? "💯 SANS FAUTE, zone rouge comprise" : acc + " % de réussite"} · ${run.score} pts · série max 🔥${run.runBest}\nRecord perso : ${best}. Fais mieux si t'es capable. 😏`;
+    let text = `🌍 GÉO-CLASH · ${run.mode.name}${run.relax ? " (mode relaxe 🌴)" : ""}${run.typed ? " (mode écrit ✍️)" : ""}\n${run.errors === 0 ? (run.relax ? "💯 SANS FAUTE" : "💯 SANS FAUTE, zone rouge comprise") : acc + " % de réussite"} · ${run.score} pts · série max 🔥${run.runBest}\nRecord perso : ${best}. Fais mieux si t'es capable. 😏`;
     const url = /^https?:/.test(location.href) && !/claude|anthropic|usercontent/.test(location.hostname) ? location.href.split("#")[0] : "";
     try {
       if (navigator.share) { await navigator.share({ title: "Géo-Clash", text, url: url || undefined }); return; }
@@ -1321,7 +1331,22 @@
   }
 
   // ================================================================ Événements
-  $("typed-toggle").onclick = () => { typedMode = !typedMode; store.set("typed", typedMode); $("typed-toggle").setAttribute("aria-pressed", String(typedMode)); };
+  // Relaxe et écrit s'excluent : le mode relaxe garde toujours les choix de réponses.
+  function paintToggles() {
+    $("relax-toggle").setAttribute("aria-pressed", String(relaxMode));
+    $("typed-toggle").setAttribute("aria-pressed", String(typedMode));
+    $("phases").classList.toggle("off", relaxMode);
+  }
+  $("relax-toggle").onclick = () => {
+    relaxMode = !relaxMode;
+    if (relaxMode) typedMode = false;
+    store.set("relax", relaxMode); store.set("typed", typedMode); paintToggles();
+  };
+  $("typed-toggle").onclick = () => {
+    typedMode = !typedMode;
+    if (typedMode) relaxMode = false;
+    store.set("relax", relaxMode); store.set("typed", typedMode); paintToggles();
+  };
   $("open-sheet").onclick = () => { renderSheet(); show("sheet-view"); };
   $("close-sheet").onclick = () => { renderHome(); show("home"); };
   $("sheet-play").onclick = () => startRun("examen");
